@@ -8,3 +8,4 @@ https://xwen2-lgtm.github.io/sequential-interaction-project-2/
 ## Studies
 
 - Ring, Pick, Collect: https://xwen2-lgtm.github.io/sequential-interaction-project-2/ring-pick-collect-study/
+- Ring Pick Collect (connected sequence): https://xwen2-lgtm.github.io/sequential-interaction-project-2/ring-pick-collect/
