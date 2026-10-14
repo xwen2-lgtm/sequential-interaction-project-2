@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ring, Pick, Collect</title>
+<style>
+  /* Launcher only: links to the three untouched study pages. */
+  :root { --bg: #ebebeb; --ink: #2b2b2b; --line: #c4c4c4; --card: #f7f7f7; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #141414; --ink: #dedede; --line: #3a3a3a; --card: #1e1e1e; }
+  }
+  body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink);
+         font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         display: grid; place-items: center; padding: 16px; box-sizing: border-box; }
+  ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; width: min(100%, 360px); }
+  a { display: flex; gap: 12px; align-items: center; padding: 16px; border: 1px solid var(--line);
+      border-radius: 12px; background: var(--card); color: inherit; text-decoration: none; }
+  a:hover, a:focus-visible { border-color: var(--ink); }
+  span { opacity: .55; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<ol>
+  <li><a href="studies/1-ring-bell.html"><span>1</span> Ring the bell</a></li>
+  <li><a href="studies/2-pick-flowers.html"><span>2</span> Pick flowers</a></li>
+  <li><a href="studies/3-collect-money.html"><span>3</span> Collect money</a></li>
+</ol>
+</body>
+</html>

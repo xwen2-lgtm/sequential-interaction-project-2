@@ -1,0 +1,544 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Pick Flowers</title>
+<style>
+/* Layout: one full-bleed canvas. Grass field on the left (landscape) or on top (portrait); the basket sits beside or below it. Grayscale only, no text. */
+:root {
+  --bg: #f3f3f2;
+  --ink: #5b5b5b;
+  --line: #c9c9c8;
+  --btn: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161616;
+    --ink: #b5b5b5;
+    --line: #3a3a3a;
+    --btn: #202020;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161616;
+  --ink: #b5b5b5;
+  --line: #3a3a3a;
+  --btn: #202020;
+  color-scheme: dark;
+}
+html { box-sizing: border-box; height: 100%; }
+body {
+  box-sizing: border-box;
+  height: 100%;
+  margin: 0;
+  padding-inline: 16px;
+  padding-block: 16px;
+  background: var(--bg);
+  color: var(--ink);
+  overflow: hidden;
+}
+.stage { position: relative; width: 100%; height: 100%; }
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.reset {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--btn);
+  color: var(--ink);
+  cursor: pointer;
+}
+.reset:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+@media (max-aspect-ratio: 1/1) {
+  .reset { top: auto; bottom: 0; }
+}
+.reset.spin svg { animation: spin 0.55s cubic-bezier(0.3, 0.7, 0.3, 1); }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .reset.spin svg { animation: none; }
+}
+</style>
+
+<div class="stage" id="stage">
+  <canvas id="c" role="img" aria-label="Flowers in the grass and an empty basket beside them"></canvas>
+  <button class="reset" id="reset" type="button" aria-label="Reset">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+  </button>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var N = 8;
+  var cv = document.getElementById('c');
+  var ctx = cv.getContext('2d');
+  var stage = document.getElementById('stage');
+  var btn = document.getElementById('reset');
+
+  var W = 0, H = 0, dpr = 1;
+  var L = null, IMG = null, theme = 'light';
+  var flowers = [], puffs = [];
+  var active = null, slotCounter = 0, done = false;
+  var time = 0, last = 0, bob = 0, bobV = 0;
+
+  var rmq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var rm = rmq.matches;
+  if (rmq.addEventListener) rmq.addEventListener('change', function () { rm = rmq.matches; });
+
+  var BASE_X = 100, BASE_Y = 280;
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function rand() { return Math.random(); }
+
+  /* ---------- grayscale assets, built from the supplied SVGs ---------- */
+  var PAL = {
+    light: { grass: '#dcdcdc', tuft: '#bcbcbc', petal: '#8f8f8f', core: '#f7f7f7', stem: '#6f6f6f', leaf: '#9b9b9b',
+             bBody: '#cacaca', bLine: '#7b7b7b', bRim: '#aaaaaa', shadow: 'rgba(70,70,70,0.20)', rgb: '110,110,110' },
+    dark:  { grass: '#2c2c2c', tuft: '#464646', petal: '#bdbdbd', core: '#3a3a3a', stem: '#8a8a8a', leaf: '#717171',
+             bBody: '#4a4a4a', bLine: '#9a9a9a', bRim: '#5e5e5e', shadow: 'rgba(0,0,0,0.35)', rgb: '230,230,230' }
+  };
+
+  function flowerSVG(p) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">' +
+      '<path d="M100 120 V280" stroke="' + p.stem + '" stroke-width="6" fill="none"/>' +
+      '<path d="M100 220 Q140 200 150 170 Q110 180 100 220 Z" fill="' + p.leaf + '"/>' +
+      '<g fill="' + p.petal + '"><circle cx="100" cy="60" r="28"/><circle cx="100" cy="120" r="28"/>' +
+      '<circle cx="70" cy="90" r="28"/><circle cx="130" cy="90" r="28"/></g>' +
+      '<circle cx="100" cy="90" r="20" fill="' + p.core + '"/></svg>';
+  }
+  function grassSVG(p) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 130 400 120" width="400" height="120">' +
+      '<rect y="130" width="400" height="120" fill="' + p.grass + '"/>' +
+      '<g stroke="' + p.tuft + '" stroke-width="3" stroke-linecap="round" fill="none">' +
+      '<path d="M40 200 l-4 -14 M40 200 l4 -14"/><path d="M110 170 l-3 -10 M110 170 l3 -10"/>' +
+      '<path d="M180 215 l-4 -14 M180 215 l4 -14"/><path d="M250 175 l-3 -10 M250 175 l3 -10"/>' +
+      '<path d="M320 205 l-4 -14 M320 205 l4 -14"/><path d="M370 160 l-3 -10 M370 160 l3 -10"/></g></svg>';
+  }
+  function basketSVG(p) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 260" width="300" height="260">' +
+      '<path d="M70 160 C70 40 230 40 230 160" stroke="' + p.bLine + '" stroke-width="8" fill="none" stroke-linecap="round"/>' +
+      '<path d="M60 160 H240 L215 240 H85 Z" fill="' + p.bBody + '" stroke="' + p.bLine + '" stroke-width="3" stroke-linejoin="round"/>' +
+      '<g stroke="' + p.bLine + '" stroke-width="2" opacity="0.7"><path d="M68 185 H232"/><path d="M76 212 H224"/>' +
+      '<path d="M110 160 L100 240"/><path d="M150 160 V240"/><path d="M190 160 L200 240"/></g>' +
+      '<rect x="55" y="152" width="190" height="14" rx="6" fill="' + p.bRim + '" stroke="' + p.bLine + '" stroke-width="3"/></svg>';
+  }
+  function loadImg(svg) {
+    return new Promise(function (res) {
+      var i = new Image();
+      i.onload = function () { res(i); };
+      i.onerror = function () { res(i); };
+      i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    });
+  }
+  function detectTheme() {
+    var t = document.documentElement.getAttribute('data-theme');
+    if (t === 'dark' || t === 'light') return t;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  function buildAssets() {
+    var t = detectTheme();
+    var p = PAL[t];
+    return Promise.all([loadImg(flowerSVG(p)), loadImg(grassSVG(p)), loadImg(basketSVG(p))]).then(function (r) {
+      theme = t;
+      IMG = { f: r[0], g: r[1], b: r[2], p: p };
+    });
+  }
+  buildAssets();
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', buildAssets);
+  new MutationObserver(buildAssets).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  /* ---------- layout ---------- */
+  function computeLayout() {
+    var g, b;
+    if (W > H) {
+      var colW = Math.max(150, Math.min(W * 0.3, 360));
+      var gap = 16;
+      g = { x: 0, y: 0, w: Math.max(120, W - colW - gap), h: H };
+      var bw = Math.min(colW, 320, H * 0.55 * 300 / 260);
+      b = { w: bw, h: bw * 260 / 300 };
+      b.x = g.x + g.w + gap + (colW - bw) / 2;
+      b.y = H - b.h;
+    } else {
+      var bw2 = Math.min(W * 0.5, 320, H * 0.28 * 300 / 260);
+      var bh = bw2 * 260 / 300;
+      g = { x: 0, y: 0, w: W, h: Math.max(120, H - bh - 16) };
+      b = { w: bw2, h: bh, x: (W - bw2) / 2, y: H - bh };
+    }
+    b.sc = b.w / 300;
+    var fH = clamp(Math.sqrt(g.w * g.h / (N * 1.5)), 44, 120);
+    var padX = fH * 0.28, topPad = fH * 0.9, botPad = 14;
+    return {
+      g: g, b: b, fH: fH, f: fH / 300,
+      padX: padX, topPad: topPad, botPad: botPad,
+      ux: Math.max(20, g.w - 2 * padX),
+      uy: Math.max(20, g.h - topPad - botPad)
+    };
+  }
+
+  function groundPos(f) {
+    return { x: L.g.x + L.padX + f.u * L.ux, y: L.g.y + L.topPad + f.v * L.uy };
+  }
+
+  function makeFlowers() {
+    flowers = [];
+    var tries = 0, relax = 1;
+    var fW = L.fH * 0.667;
+    while (flowers.length < N) {
+      var u = rand(), v = rand();
+      var px = u * L.ux, py = v * L.uy, ok = true;
+      for (var i = 0; i < flowers.length; i++) {
+        var e = flowers[i];
+        var dx = (px - e.u * L.ux) / (fW * 0.75 * relax);
+        var dy = (py - e.v * L.uy) / (L.fH * 0.28 * relax);
+        if (dx * dx + dy * dy < 1) { ok = false; break; }
+      }
+      tries++;
+      if (tries % 40 === 0) relax *= 0.92;
+      if (ok) {
+        flowers.push({ u: u, v: v, phase: rand() * 6.28, st: 'ground', ang: 0, angV: 0, lift: 0, liftV: 0,
+                       ox: 0, oxV: 0, ps: 0, pulling: false, fly: null, slot: -1 });
+      }
+    }
+  }
+
+  /* ---------- basket slots (a loose, fanned bouquet) ---------- */
+  function slotParam(i) {
+    return {
+      a: (((i * 0.618034) % 1) - 0.5) * 0.9,
+      l: (i * 0.3819 + 0.2) % 1,
+      ox: (((i * 0.7548) % 1) - 0.5) * 70
+    };
+  }
+  function slotAnchor(i) {
+    var p = slotParam(i), b = L.b, sc = b.sc;
+    return {
+      x: b.x + (150 + p.ox) * sc,
+      y: b.y + 205 * sc,
+      a: p.a,
+      fb: Math.min(sc * (0.44 + 0.12 * p.l), L.f * 1.1),
+      l: p.l
+    };
+  }
+
+  /* ---------- puffs ---------- */
+  function spawnPuff(x, y, vx, vy, r, rate) {
+    puffs.push({ x: x, y: y, vx: vx, vy: vy, r: r, life: 1, rate: rate });
+  }
+
+  /* ---------- interaction ---------- */
+  function pos(e) {
+    var r = cv.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  function pullDist() { return Math.max(40, L.fH * 0.62); }
+
+  function hitTest(px, py) {
+    var order = flowers.filter(function (f) { return f.st === 'ground'; })
+      .sort(function (a, b) { return groundPos(b).y - groundPos(a).y; });
+    for (var i = 0; i < order.length; i++) {
+      var f = order[i], gp = groundPos(f), s = L.f;
+      var bx = gp.x + f.ox, by = gp.y - f.lift;
+      var cx = bx, cy = by - 190 * s;
+      var dx = px - cx, dy = py - cy, rad = 62 * s + 10;
+      if (dx * dx + dy * dy <= rad * rad) return f;
+      if (Math.abs(px - bx) <= 6 * s + 10 && py >= cy && py <= by + 6) return f;
+    }
+    return null;
+  }
+
+  /* ---------- sound: a soft, rising pluck, one pentatonic step per flower ---------- */
+  var AC = null;
+  function audio() {
+    if (!AC) {
+      var C = window.AudioContext || window.webkitAudioContext;
+      if (C) { try { AC = new C(); } catch (err) { AC = null; } }
+    }
+    if (AC && AC.state === 'suspended') AC.resume();
+    return AC;
+  }
+  var SCALE = [0, 2, 4, 7, 9];
+  function pluckSound(n) {
+    var ac = audio();
+    if (!ac) return;
+    var now = ac.currentTime;
+    var semis = SCALE[n % 5] + 12 * (Math.floor(n / 5) % 2);
+    var f0 = 523.25 * Math.pow(2, semis / 12);
+    var master = ac.createGain();
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.exponentialRampToValueAtTime(0.16, now + 0.012);
+    master.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+    master.connect(ac.destination);
+    [[1, 1], [2, 0.25]].forEach(function (part) {
+      var o = ac.createOscillator();
+      var g = ac.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(f0 * part[0] * 0.8, now);
+      o.frequency.exponentialRampToValueAtTime(f0 * part[0], now + 0.06);
+      g.gain.value = part[1];
+      o.connect(g);
+      g.connect(master);
+      o.start(now);
+      o.stop(now + 0.5);
+    });
+  }
+
+  function pluck(f) {
+    var gp = groundPos(f);
+    f.pulling = false;
+    pluckSound(slotCounter);
+    f.st = 'fly';
+    f.slot = slotCounter++;
+    f.fly = { t: 0, dur: rm ? 0.3 : 0.9 + rand() * 0.15, x0: gp.x + f.ox, y0: gp.y - f.lift,
+              a0: f.ang, s0: L.f, x: gp.x, y: gp.y - f.lift, a: f.ang, s: L.f };
+  }
+  function release(f) {
+    f.angV += (rand() < 0.5 ? -1 : 1) * (rm ? 0.5 : 3.2) * f.ps;
+    f.pulling = false;
+  }
+
+  cv.addEventListener('pointerdown', function (e) {
+    if (active || !IMG || !L) return;
+    var pt = pos(e);
+    var hit = hitTest(pt.x, pt.y);
+    if (!hit) return;
+    audio();
+    cv.setPointerCapture(e.pointerId);
+    active = { f: hit, id: e.pointerId, sx: pt.x, sy: pt.y, x: pt.x, y: pt.y, ly: pt.y, lt: e.timeStamp, vy: 0, p: 0 };
+    e.preventDefault();
+  });
+  cv.addEventListener('pointermove', function (e) {
+    if (!active || e.pointerId !== active.id) return;
+    var pt = pos(e);
+    var dt = e.timeStamp - active.lt;
+    if (dt > 0) { active.vy = (pt.y - active.ly) / dt; active.ly = pt.y; active.lt = e.timeStamp; }
+    active.x = pt.x; active.y = pt.y;
+    var dy = active.sy - pt.y;
+    if (dy > 4) active.f.pulling = true;
+    active.p = active.f.pulling ? clamp(dy / pullDist(), 0, 1) : 0;
+    if (active.p >= 1) {
+      pluck(active.f);
+      active = null;
+    }
+  });
+  function endPointer(e) {
+    if (!active || e.pointerId !== active.id) return;
+    var a = active;
+    active = null;
+    if (a.f.st !== 'ground') return;
+    var vy = (e.timeStamp - a.lt) < 90 ? a.vy : 0;
+    if (e.type !== 'pointercancel' && a.f.pulling && (a.p > 0.55 || (a.p > 0.12 && vy < -1.0))) pluck(a.f);
+    else release(a.f);
+  }
+  cv.addEventListener('pointerup', endPointer);
+  cv.addEventListener('pointercancel', endPointer);
+
+  function reset() {
+    puffs = [];
+    active = null;
+    slotCounter = 0;
+    done = false;
+    bob = 0; bobV = 0;
+    makeFlowers();
+  }
+  btn.addEventListener('click', function () {
+    reset();
+    btn.classList.remove('spin');
+    void btn.offsetWidth;
+    btn.classList.add('spin');
+  });
+  btn.addEventListener('animationend', function () { btn.classList.remove('spin'); });
+
+  /* ---------- simulation ---------- */
+  function spring(o, key, vkey, target, k, c, dt) {
+    o[vkey] += (-k * (o[key] - target) - c * o[vkey]) * dt;
+    o[key] += o[vkey] * dt;
+  }
+
+  function land(f) {
+    f.st = 'basket';
+    f.fly = null;
+    bobV += 2.2;
+    var all = flowers.every(function (x) { return x.st === 'basket'; });
+    if (all && !done) {
+      done = true;
+    }
+  }
+
+  function update(dt) {
+    var A = active;
+    for (var i = 0; i < flowers.length; i++) {
+      var f = flowers[i];
+      if (f.st === 'ground') {
+        var isA = A && A.f === f;
+        var isP = isA && f.pulling;
+        f.ps += ((isP ? A.p : 0) - f.ps) * (1 - Math.exp(-dt * 14));
+        var lean = isP ? clamp((A.x - A.sx) / L.fH, -0.8, 0.8) * 0.35 : 0;
+        var wob = isP ? Math.sin(time * 13 + f.phase) * 0.13 * f.ps * (rm ? 0.3 : 1) : 0;
+        var tl = isP ? L.fH * 0.3 * (1 - (1 - f.ps) * (1 - f.ps)) : 0;
+        var tx = isP ? clamp((A.x - A.sx) * 0.22, -L.fH * 0.25, L.fH * 0.25) : 0;
+        spring(f, 'ang', 'angV', lean + wob, 80, 6, dt);
+        spring(f, 'lift', 'liftV', tl, 140, 11, dt);
+        spring(f, 'ox', 'oxV', tx, 100, 10, dt);
+      } else if (f.st === 'fly') {
+        var fl = f.fly;
+        fl.t = Math.min(1, fl.t + dt / fl.dur);
+        var t = fl.t;
+        var e = rm ? t : -(Math.cos(Math.PI * t) - 1) / 2;
+        var sa = slotAnchor(f.slot);
+        var cx = (fl.x0 + sa.x) / 2;
+        var cy = Math.min(fl.y0, sa.y) - (rm ? 0 : L.fH * 1.1);
+        var u = 1 - e;
+        fl.x = u * u * fl.x0 + 2 * u * e * cx + e * e * sa.x;
+        fl.y = u * u * fl.y0 + 2 * u * e * cy + e * e * sa.y;
+        fl.a = fl.a0 * u + sa.a * e + (rm ? 0 : Math.sin(t * Math.PI * 2.5) * 0.18 * u);
+        fl.s = fl.s0 * u + sa.fb * e;
+        if (t >= 1) land(f);
+      }
+    }
+    bobV += (-120 * bob - 8 * bobV) * dt;
+    bob += bobV * dt;
+    for (var j = puffs.length - 1; j >= 0; j--) {
+      var p = puffs[j];
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.98;
+      p.life -= dt * p.rate;
+      if (p.life <= 0) puffs.splice(j, 1);
+    }
+  }
+
+  /* ---------- drawing ---------- */
+  function rr(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  function drawFlower(x, y, s, a) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(a);
+    ctx.drawImage(IMG.f, -BASE_X * s, -BASE_Y * s, 200 * s, 300 * s);
+    ctx.restore();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    var g = L.g, b = L.b, i, f;
+
+    /* grass */
+    ctx.save();
+    rr(g.x, g.y, g.w, g.h, 28);
+    ctx.clip();
+    var tw = Math.max(200, Math.min(400, g.w / 3)), th = tw * 0.3, row = 0;
+    for (var y = g.y; y < g.y + g.h; y += th, row++) {
+      for (var x = g.x - (row % 2) * tw * 0.37; x < g.x + g.w; x += tw) {
+        ctx.drawImage(IMG.g, x, y, tw + 1, th + 1);
+      }
+    }
+    ctx.restore();
+
+    /* flowers still in the grass, back to front, pulled one last */
+    var ground = flowers.filter(function (q) { return q.st === 'ground'; })
+      .sort(function (p, q) {
+        var pa = active && active.f === p ? 1 : 0, qa = active && active.f === q ? 1 : 0;
+        if (pa !== qa) return pa - qa;
+        return groundPos(p).y - groundPos(q).y;
+      });
+    for (i = 0; i < ground.length; i++) {
+      f = ground[i];
+      var gp = groundPos(f);
+      var lf = clamp(f.lift / (L.fH * 0.3), 0, 1);
+      var rx = L.fH * 0.11 * (1 - 0.3 * lf);
+      ctx.fillStyle = IMG.p.shadow;
+      ctx.globalAlpha = 1 - lf * 0.6;
+      ctx.beginPath();
+      ctx.ellipse(gp.x, gp.y + 2, rx, rx * 0.3, 0, 0, 6.2832);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    for (i = 0; i < ground.length; i++) {
+      f = ground[i];
+      var p2 = groundPos(f);
+      drawFlower(p2.x + f.ox, p2.y - f.lift, L.f, f.ang);
+    }
+
+    /* basket layer: flowers inside it, then the basket in front of their stems */
+    var items = [];
+    for (i = 0; i < flowers.length; i++) {
+      f = flowers[i];
+      if (f.st === 'basket') {
+        var sa = slotAnchor(f.slot);
+        items.push({ x: sa.x, y: sa.y, a: sa.a, s: sa.fb, l: sa.l });
+      } else if (f.st === 'fly' && f.fly.t > 0.82) {
+        items.push({ x: f.fly.x, y: f.fly.y, a: f.fly.a, s: f.fly.s, l: slotParam(f.slot).l });
+      }
+    }
+    items.sort(function (p, q) { return q.l - p.l; });
+    ctx.save();
+    var bcx = b.x + b.w / 2, bby = b.y + b.h;
+    ctx.translate(bcx, bby);
+    ctx.scale(1 + bob * 0.1, 1 - bob * 0.18);
+    ctx.translate(-bcx, -bby);
+    for (i = 0; i < items.length; i++) drawFlower(items[i].x, items[i].y, items[i].s, items[i].a);
+    ctx.drawImage(IMG.b, b.x, b.y, b.w, b.h);
+    ctx.restore();
+
+    /* flowers in flight */
+    for (i = 0; i < flowers.length; i++) {
+      f = flowers[i];
+      if (f.st === 'fly' && f.fly.t <= 0.82) drawFlower(f.fly.x, f.fly.y, f.fly.s, f.fly.a);
+    }
+
+    /* soft puffs */
+    for (i = 0; i < puffs.length; i++) {
+      var pf = puffs[i];
+      ctx.fillStyle = 'rgba(' + IMG.p.rgb + ',' + (0.32 * pf.life).toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.arc(pf.x, pf.y, pf.r * (1 + (1 - pf.life) * 0.8), 0, 6.2832);
+      ctx.fill();
+    }
+  }
+
+  function frame(ts) {
+    requestAnimationFrame(frame);
+    if (!IMG || !L) return;
+    var dt = Math.min(0.033, (ts - last) / 1000 || 0.016);
+    last = ts;
+    time += dt;
+    update(dt);
+    draw();
+  }
+  requestAnimationFrame(frame);
+
+  /* ---------- sizing ---------- */
+  function resize() {
+    W = stage.clientWidth;
+    H = stage.clientHeight;
+    if (!W || !H) return;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(W * dpr);
+    cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    L = computeLayout();
+    if (!flowers.length) makeFlowers();
+  }
+  new ResizeObserver(resize).observe(stage);
+  resize();
+})();
+</script>
+
+</body></html>
