@@ -1,0 +1,320 @@
+/* Layout: one full-screen stage. The field (step 1) and the shop counter (steps 2-3) are stacked layers;
+   the "tap to begin" screen sits on top until the first tap. Restart and mute stay in the top corners. */
+:root {
+  --bg: #ebebeb;
+  --ui: #5f5f5f;
+  --hover: #dedede;
+  --btn-bg: rgba(255, 255, 255, 0.72);
+  --ring: rgba(95, 95, 95, 0.42);
+
+  /* bell */
+  --base: #3c3c3c;
+  --dome: #6e6e6e;
+  --hi: #c8c8c8;
+  --plunger: #2b2b2b;
+
+  /* counter and till */
+  --line: #1a1a1a;
+  --c-floor: rgba(0, 0, 0, 0.14);
+  --c-surf-a: #e4e4e4;
+  --c-surf-b: #b8b8b8;
+  --c-topsheen: rgba(255, 255, 255, 0.28);
+  --c-rail: #2e2e2e;
+  --c-railline: #bdbdbd;
+  --c-front-a: #6b6b6b;
+  --c-front-b: #4a4a4a;
+  --c-panel-a: #8a8a8a;
+  --c-panel-b: #717171;
+  --c-inset: #e0e0e0;
+  --c-handle: #e8e8e8;
+  --c-base: #222;
+  --t-body: #9a9a9a;
+  --t-interior: #3a3a3a;
+  --t-comp: #dcdcdc;
+  --t-label: #222;
+  --t-lip: #b0b0b0;
+  --t-pull: #2a2a2a;
+  --t-pullhi: #777;
+  --t-gloss: 0.4;
+
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141414;
+    --ui: #a0a0a0;
+    --hover: #242424;
+    --btn-bg: rgba(20, 20, 20, 0.72);
+    --ring: rgba(200, 200, 200, 0.38);
+    --base: #8a8a8a;
+    --dome: #bdbdbd;
+    --hi: #f4f4f4;
+    --plunger: #e4e4e4;
+    --line: #050505;
+    --c-floor: rgba(0, 0, 0, 0.5);
+    --c-surf-a: #4a4a4a;
+    --c-surf-b: #303030;
+    --c-topsheen: rgba(255, 255, 255, 0.07);
+    --c-rail: #1c1c1c;
+    --c-railline: #5a5a5a;
+    --c-front-a: #2e2e2e;
+    --c-front-b: #222;
+    --c-panel-a: #3d3d3d;
+    --c-panel-b: #333;
+    --c-inset: #555;
+    --c-handle: #8a8a8a;
+    --c-base: #0c0c0c;
+    --t-body: #555;
+    --t-interior: #1c1c1c;
+    --t-comp: #4a4a4a;
+    --t-label: #e8e8e8;
+    --t-lip: #626262;
+    --t-pull: #141414;
+    --t-pullhi: #4a4a4a;
+    --t-gloss: 0.12;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141414;
+  --ui: #a0a0a0;
+  --hover: #242424;
+  --btn-bg: rgba(20, 20, 20, 0.72);
+  --ring: rgba(200, 200, 200, 0.38);
+  --base: #8a8a8a;
+  --dome: #bdbdbd;
+  --hi: #f4f4f4;
+  --plunger: #e4e4e4;
+  --line: #050505;
+  --c-floor: rgba(0, 0, 0, 0.5);
+  --c-surf-a: #4a4a4a;
+  --c-surf-b: #303030;
+  --c-topsheen: rgba(255, 255, 255, 0.07);
+  --c-rail: #1c1c1c;
+  --c-railline: #5a5a5a;
+  --c-front-a: #2e2e2e;
+  --c-front-b: #222;
+  --c-panel-a: #3d3d3d;
+  --c-panel-b: #333;
+  --c-inset: #555;
+  --c-handle: #8a8a8a;
+  --c-base: #0c0c0c;
+  --t-body: #555;
+  --t-interior: #1c1c1c;
+  --t-comp: #4a4a4a;
+  --t-label: #e8e8e8;
+  --t-lip: #626262;
+  --t-pull: #141414;
+  --t-pullhi: #4a4a4a;
+  --t-gloss: 0.12;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ui);
+  font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#stage { position: fixed; inset: 0; overflow: hidden; }
+
+/* ---------- layers ---------- */
+.layer {
+  position: absolute;
+  inset: 0;
+  padding: calc(64px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px))
+           max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  opacity: 0;
+  visibility: hidden;
+}
+.fit { position: relative; width: 100%; height: 100%; }
+#fieldFit canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+#scene {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+.art { pointer-events: none; }
+
+/* ---------- starting state ---------- */
+.intro {
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: var(--bg);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.intro:focus-visible { outline: none; }
+.intro:focus-visible .pulse { border-color: var(--ui); }
+.pulse {
+  width: 120px;
+  height: 120px;
+  border: 2px solid var(--ring);
+  border-radius: 50%;
+  animation: pulse 2.6s ease-in-out infinite;
+}
+@keyframes pulse {
+  0% { transform: scale(0.55); opacity: 0; }
+  35% { opacity: 1; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+/* scene-change rings */
+.ring {
+  position: absolute;
+  z-index: 6;
+  border-radius: 50%;
+  border: 2px solid var(--ring);
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* the bouquet in flight between the field and the counter */
+#carry {
+  position: absolute;
+  z-index: 4;
+  overflow: visible;
+  pointer-events: none;
+  transform-origin: 0 0;
+  visibility: hidden;
+}
+
+/* ---------- buttons ---------- */
+.corner, .replay {
+  position: absolute;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1.5px solid var(--ui);
+  border-radius: 50%;
+  background: var(--btn-bg);
+  color: var(--ui);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.corner {
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  width: 40px;
+  height: 40px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+.corner.left { left: max(12px, env(safe-area-inset-left, 0px)); }
+.corner.right { right: max(12px, env(safe-area-inset-right, 0px)); }
+.corner:hover, .corner:focus-visible { opacity: 1; }
+.corner:focus-visible, .replay:focus-visible { outline: 2px solid var(--ui); outline-offset: 3px; }
+.corner svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#mute .spk { fill: currentColor; }
+#mute .off { display: none; }
+#mute[aria-pressed="false"] .on { display: none; }
+#mute[aria-pressed="false"] .off { display: inline; }
+
+.replay {
+  left: 50%;
+  top: 26%;   /* the empty space above the counter, where the till was */
+  width: 56px;
+  height: 56px;
+  margin-left: -28px;
+  opacity: 0;
+  visibility: hidden;
+}
+.replay:hover { background: var(--hover); }
+.replay svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- bell ---------- */
+.b-base { fill: var(--base); }
+.b-dome { fill: var(--dome); }
+.b-hi { fill: none; stroke: var(--hi); stroke-width: 8; stroke-linecap: round; }
+.b-plunger { fill: var(--plunger); }
+.bell { outline: none; -webkit-tap-highlight-color: transparent; }
+.bell .hit { pointer-events: visiblePainted; cursor: pointer; }
+.bell.off { pointer-events: none; }
+.bell.off .hit { pointer-events: none; cursor: default; }
+.bell:focus-visible .b-dome { stroke: var(--ui); stroke-width: 3; }
+
+/* ---------- counter and till colours ---------- */
+.ln { stroke: var(--line); }
+.st-surf-a { stop-color: var(--c-surf-a); }
+.st-surf-b { stop-color: var(--c-surf-b); }
+.st-front-a { stop-color: var(--c-front-a); }
+.st-front-b { stop-color: var(--c-front-b); }
+.st-panel-a { stop-color: var(--c-panel-a); }
+.st-panel-b { stop-color: var(--c-panel-b); }
+.st-gloss { stop-color: #fff; stop-opacity: var(--t-gloss); }
+.c-floor { fill: var(--c-floor); }
+.c-topsheen { fill: var(--c-topsheen); }
+.c-rail { fill: var(--c-rail); }
+.c-railline { stroke: var(--c-railline); }
+.c-inset { stroke: var(--c-inset); }
+.c-handle { fill: var(--c-handle); }
+.c-base { fill: var(--c-base); }
+.t-body { fill: var(--t-body); }
+.t-interior { fill: var(--t-interior); }
+.t-comp { fill: var(--t-comp); }
+.t-label { fill: var(--t-label); }
+.t-lip { fill: var(--t-lip); }
+.t-pull { fill: var(--t-pull); }
+.t-pullhi { fill: var(--t-pullhi); }
+
+/* ---------- money (from the Collect Money study) ---------- */
+.item { cursor: grab; filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .35)); }
+.item.idle { animation: breathe 3.2s ease-in-out infinite; }
+.item.hint { animation: hintPulse 1s ease-in-out infinite; }
+.item.drag { cursor: grabbing; animation: none; filter: drop-shadow(0 14px 10px rgba(0, 0, 0, .3)) drop-shadow(0 0 10px rgba(255, 255, 255, .95)); }
+.item.landed { cursor: default; animation: none; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .4)); }
+@keyframes breathe {
+  0%, 100% { filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .35)); }
+  50% { filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .35)) drop-shadow(0 0 7px rgba(255, 255, 255, .9)); }
+}
+@keyframes hintPulse {
+  0%, 100% { filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .35)) drop-shadow(0 0 3px rgba(255, 255, 255, .6)); }
+  50% { filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .3)) drop-shadow(0 0 14px rgba(255, 255, 255, 1)); }
+}
+
+/* slot lights */
+.halo { fill: #fff; opacity: 0; filter: url(#halo); transition: opacity .25s ease; }
+.lit { fill: #fff; opacity: 0; transition: opacity .25s ease; }
+.slot.hot .halo { opacity: .95; }
+.slot.hot .lit { opacity: .55; }
+.slot.hint .halo { animation: haloPulse 1s ease-in-out infinite; }
+.slot.hint .lit { animation: litPulse 1s ease-in-out infinite; }
+.slot.pop .halo { animation: pop .75s ease-out; }
+@keyframes haloPulse { 0%, 100% { opacity: .1; } 50% { opacity: .95; } }
+@keyframes litPulse { 0%, 100% { opacity: 0; } 50% { opacity: .5; } }
+@keyframes pop { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+/* a fresh pile arrives */
+#items.arriving { animation: fadeIn .5s ease-out; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* completion sheen */
+.sheen { opacity: 0; transform: translateX(-260px) skewX(-20deg); }
+.done .sheen { animation: sweep 1.4s ease-in-out .9s both; }
+@keyframes sweep {
+  0% { transform: translateX(-260px) skewX(-20deg); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateX(1000px) skewX(-20deg); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse { animation: none; opacity: 1; transform: scale(0.8); }
+  .item.idle, .item.hint, .slot.hint .halo, .slot.hint .lit, .slot.pop .halo, .done .sheen { animation: none; }
+  .slot.hint .halo { opacity: .9; }
+  .slot.hint .lit { opacity: .45; }
+}

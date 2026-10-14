@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Flower Shop</title>
+<meta name="description" content="A wordless flower shop visit: pick a bouquet, ring the bell, pay at the till.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main id="stage" data-step="intro">
+
+  <!-- Step 1: the flower field (canvas is added by js/flowers.js) -->
+  <section id="fieldLayer" class="layer" aria-label="Pick flowers">
+    <div id="fieldFit" class="fit"></div>
+  </section>
+
+  <!-- Steps 2 and 3: the shop counter, with the bell, the bouquet and the till -->
+  <section id="shopLayer" class="layer" aria-label="Shop counter">
+    <div class="fit">
+      <svg id="scene" viewBox="0 0 900 850" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Shop counter">
+        <defs>
+          <linearGradient id="surf" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" class="st-surf-a"/>
+            <stop offset="100%" class="st-surf-b"/>
+          </linearGradient>
+          <linearGradient id="front" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" class="st-front-a"/>
+            <stop offset="100%" class="st-front-b"/>
+          </linearGradient>
+          <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" class="st-panel-a"/>
+            <stop offset="100%" class="st-panel-b"/>
+          </linearGradient>
+          <linearGradient id="gloss" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" class="st-gloss"/>
+            <stop offset="45%" stop-color="#fff" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="glossB" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#fff" stop-opacity=".55"/>
+            <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="sheenG" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#fff" stop-opacity="0"/>
+            <stop offset="50%" stop-color="#fff" stop-opacity=".75"/>
+            <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+          </linearGradient>
+          <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+            <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#000" flood-opacity="0.32"/>
+          </filter>
+          <filter id="halo" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="7"/>
+          </filter>
+          <clipPath id="drawerClip"><rect x="70" y="30" width="760" height="395" rx="14"/></clipPath>
+          <!-- the drawer is only ever seen above the counter top, so it can rise from behind it -->
+          <clipPath id="tillClip"><rect x="0" y="-200" width="900" height="640"/></clipPath>
+        </defs>
+
+        <!-- Counter -->
+        <g class="art">
+          <ellipse class="c-floor" cx="450" cy="834" rx="410" ry="12"/>
+          <g filter="url(#shadow)">
+            <polygon class="ln" points="40,440 860,440 880,640 20,640" fill="url(#surf)" stroke-width="3" stroke-linejoin="round"/>
+            <polygon class="c-topsheen" points="48,446 852,446 858,472 42,472"/>
+            <g transform="translate(0 550)">
+              <rect class="c-rail ln" x="20" y="90" width="860" height="22" rx="3" stroke-width="3"/>
+              <line class="c-railline" x1="30" y1="96" x2="870" y2="96" stroke-width="2"/>
+              <rect class="ln" x="40" y="112" width="820" height="150" fill="url(#front)" stroke-width="3"/>
+              <g class="ln" stroke-width="3" fill="url(#panel)">
+                <rect x="60" y="128" width="250" height="62" rx="4"/>
+                <rect x="325" y="128" width="250" height="62" rx="4"/>
+                <rect x="590" y="128" width="250" height="62" rx="4"/>
+              </g>
+              <g class="c-inset" fill="none" stroke-width="1.5">
+                <rect x="68" y="136" width="234" height="46" rx="2"/>
+                <rect x="333" y="136" width="234" height="46" rx="2"/>
+                <rect x="598" y="136" width="234" height="46" rx="2"/>
+              </g>
+              <g class="c-handle ln" stroke-width="2">
+                <rect x="155" y="152" width="60" height="12" rx="6"/>
+                <rect x="420" y="152" width="60" height="12" rx="6"/>
+                <rect x="685" y="152" width="60" height="12" rx="6"/>
+              </g>
+              <g class="ln" stroke-width="3" fill="url(#panel)">
+                <rect x="60" y="204" width="388" height="46" rx="4"/>
+                <rect x="452" y="204" width="388" height="46" rx="4"/>
+              </g>
+              <g class="c-handle ln" stroke-width="2">
+                <circle cx="430" cy="227" r="6"/>
+                <circle cx="470" cy="227" r="6"/>
+              </g>
+              <rect class="c-base ln" x="40" y="262" width="820" height="12" stroke-width="3"/>
+            </g>
+          </g>
+        </g>
+
+        <!-- Till: the open cash drawer and everything that sits in it -->
+        <g clip-path="url(#tillClip)">
+          <g id="till" transform="translate(0 440)">
+            <g class="art" transform="translate(50 10)">
+              <g filter="url(#shadow)">
+                <rect class="t-body ln" x="20" y="20" width="760" height="395" rx="14" stroke-width="4"/>
+                <rect class="t-interior ln" x="40" y="40" width="720" height="305" rx="8" stroke-width="3"/>
+              </g>
+              <g class="t-comp ln" stroke-width="2.5">
+                <rect x="55" y="55" width="160" height="150" rx="5"/>
+                <rect x="228" y="55" width="160" height="150" rx="5"/>
+                <rect x="401" y="55" width="160" height="150" rx="5"/>
+                <rect x="574" y="55" width="160" height="150" rx="5"/>
+                <rect x="228" y="220" width="160" height="110" rx="5"/>
+                <rect x="401" y="220" width="160" height="110" rx="5"/>
+              </g>
+              <g class="t-label" font-family="Georgia, serif" font-weight="bold" text-anchor="middle">
+                <g font-size="20">
+                  <text x="135" y="188">$1 bills</text>
+                  <text x="308" y="188">$5 bills</text>
+                  <text x="481" y="188">$20 bills</text>
+                  <text x="654" y="188">$100 bills</text>
+                </g>
+                <g font-size="18">
+                  <text x="308" y="322">Pennies</text>
+                  <text x="481" y="322">Dimes</text>
+                </g>
+              </g>
+              <rect class="t-lip ln" x="35" y="355" width="730" height="50" rx="8" stroke-width="3"/>
+              <rect class="t-pull ln" x="320" y="368" width="160" height="24" rx="12" stroke-width="2"/>
+              <rect class="t-pullhi" x="330" y="374" width="140" height="6" rx="3"/>
+              <rect x="20" y="20" width="760" height="395" rx="14" fill="url(#gloss)"/>
+            </g>
+            <g id="slotsFx" class="art"></g>
+            <g id="stacks" class="art"></g>
+            <g id="landed"></g>
+            <g class="art" clip-path="url(#drawerClip)"><rect class="sheen" x="0" y="20" width="110" height="420" fill="url(#sheenG)"/></g>
+          </g>
+        </g>
+
+        <!-- The bouquet carried in from the field (filled by js/shop.js) -->
+        <g id="bouquet" class="art"></g>
+
+        <!-- The bell (from the Ring The Bell study) -->
+        <g id="bellPlace">
+          <g id="bellHit" class="bell" role="button" tabindex="-1" aria-label="Ring the bell">
+            <rect class="hit" x="36" y="40" width="228" height="140" fill="transparent"/>
+            <rect class="b-base" x="50" y="150" width="200" height="22" rx="11"/>
+            <g transform="translate(0 -12)">
+              <g id="swing">
+                <path class="b-dome" d="M70 150 A80 70 0 0 1 230 150 Z"/>
+                <path class="b-hi" d="M92 138 A58 52 0 0 1 126 98"/>
+                <g id="btn">
+                  <rect class="b-plunger" x="144" y="66" width="12" height="16"/>
+                  <rect class="b-plunger" x="128" y="54" width="44" height="14" rx="7"/>
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+
+        <!-- Loose money on the counter, and the piece being dragged -->
+        <g id="items"></g>
+        <g id="drag"></g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- The bouquet while it is carried from the field to the counter -->
+  <svg id="carry" viewBox="0 0 380 280" aria-hidden="true" focusable="false"></svg>
+
+  <!-- Starting state: a quiet field that waits for a tap -->
+  <button id="intro" class="layer intro" type="button" aria-label="Tap to begin">
+    <span class="pulse" aria-hidden="true"></span>
+  </button>
+
+  <button id="restart" class="corner left" type="button" aria-label="Restart from the beginning" title="Restart">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v5h5"/></svg>
+  </button>
+  <button id="mute" class="corner right" type="button" aria-label="Sound" aria-pressed="true" title="Sound">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path class="spk" d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z"/>
+      <g class="on"><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18.2 6.4a8 8 0 0 1 0 11.2"/></g>
+      <path class="off" d="M16 9.5l5 5M21 9.5l-5 5"/>
+    </svg>
+  </button>
+
+  <button id="replay" class="replay" type="button" aria-label="Replay from the beginning" title="Replay">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v5h5"/></svg>
+  </button>
+</main>
+
+<script src="js/util.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/flowers.js"></script>
+<script src="js/bell.js"></script>
+<script src="js/money.js"></script>
+<script src="js/shop.js"></script>
+<script src="js/sequence.js"></script>
+</body>
+</html>
