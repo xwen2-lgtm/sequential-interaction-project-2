@@ -181,17 +181,46 @@
     </svg>
   </button>
 
+  <!-- Flower controls: only offered during the Pick step -->
+  <button id="panelToggle" class="corner right second" type="button" aria-label="Flower controls" title="Flower controls"
+          aria-expanded="false" aria-controls="flowerPanel">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/>
+      <circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>
+    </svg>
+  </button>
+  <aside id="flowerPanel" class="panel" aria-label="Flower controls" hidden>
+    <div class="panel-head">
+      <h2>Flower controls</h2>
+      <button class="panel-close" type="button" aria-label="Collapse flower controls" title="Collapse">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 15l6-6 6 6"/></svg>
+      </button>
+    </div>
+    <div class="panel-body"></div>
+    <div class="panel-foot">
+      <div class="panel-actions">
+        <button type="button" data-act="reset" title="New flowers in the grass and an empty basket; settings stay">Reset state</button>
+        <button type="button" data-act="defaults" title="Put every control back to the study's original values">Restore defaults</button>
+      </div>
+      <button type="button" data-act="copy" class="primary">Copy as prompt</button>
+      <textarea class="panel-manual" rows="7" readonly hidden aria-label="Prompt text"></textarea>
+      <p class="panel-status" role="status" aria-live="polite"></p>
+    </div>
+  </aside>
+
   <button id="replay" class="replay" type="button" aria-label="Replay from the beginning" title="Replay">
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v5h5"/></svg>
   </button>
 </main>
 
 <script src="js/util.js"></script>
+<script src="js/settings.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/flowers.js"></script>
 <script src="js/bell.js"></script>
 <script src="js/money.js"></script>
 <script src="js/shop.js"></script>
+<script src="js/panel.js"></script>
 <script src="js/sequence.js"></script>
 </body>
 </html>

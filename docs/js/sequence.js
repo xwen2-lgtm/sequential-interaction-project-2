@@ -13,6 +13,11 @@
 
   var flowers = R.createFlowers($('fieldFit'));
   var shop = R.createShop($('scene'));
+  var panel = R.createPanel({
+    toggle: $('panelToggle'),
+    panel: $('flowerPanel'),
+    onResetState: function () { if (step === 'pick') flowers.restartPick(); }
+  });
 
   /* every restart starts a new generation; timers and tweens from an older one stop quietly */
   var gen = 0, timers = [], step = 'intro';
@@ -64,6 +69,7 @@
     timers.forEach(clearTimeout);
     timers = [];
     stage.querySelectorAll('.ring').forEach(function (r) { r.remove(); });
+    panel.close();
     flowers.stop();
     flowers.reset();
     shop.reset();
@@ -99,6 +105,7 @@
 
   /* ---------- pick → ring: the finished basket is carried onto the counter ---------- */
   function picked() {
+    panel.close();
     setStep('to-ring');
     later(carryBouquet, 1100);   // let the basket's bounce settle, as in the connected draft
   }
@@ -107,13 +114,14 @@
     var ok = guard();
     var reduce = R.reduce();
     var from = flowers.bouquetRect();
-    var cap = flowers.cap();
+    var cap = flowers.cap(), cols = flowers.slotColors();
 
     shop.reset();
-    shop.setBouquet(cap);
+    shop.setBouquet(cap, cols);
     shop.showBouquet(false);
 
-    carry.innerHTML = '<g transform="translate(40 20)">' + R.flora.bouquet(R.flora.PAL[R.theme()], cap, 8) + '</g>';
+    carry.innerHTML = '<g transform="translate(40 20)">' +
+      R.flora.bouquet(R.flora.palettes(R.theme(), R.settings.get()), cap, 8, cols) + '</g>';
     flowers.setHideBasket(true);
 
     fade(fieldLayer, false, reduce ? 300 : 800);

@@ -27,6 +27,32 @@ The published site is in `docs/`.
 | 3. Collect | Drag each bill and coin into its slot | Pick-up sound and the right slot lights; a wrong slot plays a low "nope" and the piece springs back; correct pieces stack with rising tones; idle hints after 0.9 s / 4.5 s; on finishing, the slots light in turn with a chime run and a sheen | All pieces (12–20, random) are in their slots | After the study's 3.2 s celebration, the ending |
 | End | – | The drawer sinks shut (thud plus soft two-note chime), and the bouquet and bell move together | – | The replay button fades in |
 
+## Flower controls (Pick step)
+
+During the Pick step, a sliders button under the mute button opens a collapsible **Flower controls** panel.
+Changes apply immediately and are remembered in the browser. The defaults reproduce the study exactly.
+
+| Control | Range / options | Default |
+|---|---|---|
+| Flower size | 60–160 % | 100 % |
+| Wind | on / off | off |
+| Wind strength | 5–60 km/h (60 km/h leans flowers about 20°; gusts travel left to right) | 20 km/h |
+| Wiggle | on / off | off |
+| Wiggle amount | 1–15 ° | 5 ° |
+| Wiggle speed | 0.5–4 Hz | 1.5 Hz |
+| Grass | original gray, lime, yellow green, peacock, olive, apple green | original gray |
+| Flowers | original gray; spring (light pink + butter yellow), summer (turquoise + bright magenta), fall (brown + light red), winter (light mint + pale lilac). Flowers alternate between the two colours, each with the other colour as its centre. | original gray |
+| Flight easing | Linear, Ease In, Ease Out, Ease In-Out (the study's curve), Spring/Bounce | Ease In-Out |
+| Flight time | 300–2000 ms (plus the study's 0–150 ms random variation) | 900 ms |
+
+- **Reset state:** new flowers in the grass and an empty basket; the settings stay.
+- **Restore defaults:** puts every control back to the default.
+- **Copy as prompt:** copies the current values as a short prompt you can paste into Claude.
+
+The chosen colours carry over to the bouquet on the shop counter. With reduced motion turned on in the
+system settings, the study's reduced-motion rules still apply: linear 0.3 s flights and gentler sway.
+Code: `docs/js/settings.js` (the list of controls), `docs/js/panel.js` (the panel), `docs/js/flowers.js` (how they apply).
+
 ## What changed from the studies
 
 The physics constants, thresholds, timings, sound design and hint logic are copied from the studies.
@@ -49,6 +75,8 @@ docs/
   css/style.css     layout, light/dark colours, money and slot animations
   js/util.js        theme, tweening, shared flower/basket art
   js/audio.js       shared AudioContext and mute
+  js/settings.js    flower controls: list, defaults, saved values, prompt text
+  js/panel.js       the collapsible flower controls panel
   js/flowers.js     step 1 (Pick Flowers study)
   js/bell.js        step 2 (Ring The Bell study)
   js/money.js       step 3 (Collect Money study)

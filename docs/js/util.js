@@ -85,10 +85,43 @@
     };
   }
 
+  function mix(hex, to, t) {
+    var a = parseInt(hex.slice(1), 16), b = parseInt(to.slice(1), 16), out = '#';
+    [16, 8, 0].forEach(function (sh) {
+      var c = Math.round(((a >> sh) & 255) * (1 - t) + ((b >> sh) & 255) * t);
+      out += (c < 16 ? '0' : '') + c.toString(16);
+    });
+    return out;
+  }
+
+  /* The colours in use: the study's grayscale palette, with the grass and flower colours
+     from the flower controls laid over it. Seasonal schemes have two flowers: A has petals
+     in the first colour and a centre in the second, B the other way round. */
+  function palettes(theme, s) {
+    var base = PAL[theme], dark = theme === 'dark';
+    var g = R.settings.GRASS[s.grass], sc = R.settings.SCHEMES[s.scheme];
+    var out = { grass: base.grass, tuft: base.tuft, shadow: base.shadow, basket: base, flowers: [base, base] };
+    if (g.hex) {
+      out.grass = dark ? mix(g.hex, '#000000', 0.55) : g.hex;
+      out.tuft = dark ? mix(g.hex, '#000000', 0.3) : mix(g.hex, '#000000', 0.25);
+    }
+    if (sc.colors) {
+      var stem = dark ? '#6f8f58' : '#4f7942', leaf = dark ? '#5c7a48' : '#7da35e';
+      var c0 = sc.colors[0][1], c1 = sc.colors[1][1];
+      out.flowers = [
+        { petal: c0, core: c1, stem: stem, leaf: leaf },
+        { petal: c1, core: c0, stem: stem, leaf: leaf }
+      ];
+    }
+    return out;
+  }
+
   /* The finished basket as SVG markup, in basket units (basket at 0,0 300x260). cap is the
-     largest flower scale relative to the basket, taken from the field so the bouquet looks identical. */
-  function bouquet(p, cap, n) {
-    var fImg = svgURL(flowerSVG(p)), bImg = svgURL(basketSVG(p));
+     largest flower scale relative to the basket, taken from the field so the bouquet looks identical.
+     colors[slot] is which of the two flower palettes the flower in that slot uses. */
+  function bouquet(pals, cap, n, colors) {
+    var fImg = pals.flowers.map(function (p) { return svgURL(flowerSVG(p)); });
+    var bImg = svgURL(basketSVG(pals.basket));
     var list = [];
     for (var i = 0; i < n; i++) list.push(i);
     list.sort(function (a, b) { return slotParam(b).l - slotParam(a).l; });
@@ -96,14 +129,23 @@
     list.forEach(function (i) {
       var s = slotParam(i), r = Math.min(0.44 + 0.12 * s.l, cap);
       out += '<g transform="translate(' + (150 + s.ox).toFixed(2) + ' 205) rotate(' + (s.a * 180 / Math.PI).toFixed(2) + ')">' +
-        '<image href="' + fImg + '" x="' + (-100 * r).toFixed(2) + '" y="' + (-280 * r).toFixed(2) +
+        '<image href="' + fImg[(colors && colors[i]) || 0] + '" x="' + (-100 * r).toFixed(2) + '" y="' + (-280 * r).toFixed(2) +
         '" width="' + (200 * r).toFixed(2) + '" height="' + (300 * r).toFixed(2) + '"/></g>';
     });
     return out + '<image href="' + bImg + '" x="0" y="0" width="300" height="260"/>';
   }
 
+  /* ease curves for the flight into the basket (flower controls) */
+  var FLIGHT = {
+    linear: function (t) { return t; },
+    in: function (t) { return t * t * t; },
+    out: function (t) { return 1 - Math.pow(1 - t, 3); },
+    inout: function (t) { return -(Math.cos(Math.PI * t) - 1) / 2; },   // the study's curve
+    spring: function (t) { return t >= 1 ? 1 : 1 - Math.exp(-6 * t) * Math.cos(t * 3.5 * Math.PI); }
+  };
+
   R.flora = {
     PAL: PAL, flowerSVG: flowerSVG, grassSVG: grassSVG, basketSVG: basketSVG,
-    svgURL: svgURL, slotParam: slotParam, bouquet: bouquet
+    svgURL: svgURL, slotParam: slotParam, bouquet: bouquet, palettes: palettes, FLIGHT: FLIGHT
   };
 })();

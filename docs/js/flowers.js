@@ -1,9 +1,11 @@
 /* Step 1, Pick: the Pick Flowers study. Pull each of eight flowers up out of the grass; it flies into the basket.
    Physics, thresholds and sound are unchanged from the study. Changes: no reset button, shared audio,
-   and a callback when the eighth flower lands so the sequence can carry the basket into the shop. */
+   and a callback when the eighth flower lands so the sequence can carry the basket into the shop.
+   The flower controls (js/settings.js, js/panel.js) adjust size, wind, wiggle, colours and the flight;
+   their defaults reproduce the study exactly. */
 (function () {
   'use strict';
-  var R = window.RPC, F = R.flora;
+  var R = window.RPC, F = R.flora, S = R.settings;
   var N = 8;
   var BASE_X = 100, BASE_Y = 280;
 
@@ -19,7 +21,7 @@
 
     var W = 0, H = 0, dpr = 1;
     var L = null, IMG = null;
-    var flowers = [];
+    var flowers = [], slotColors = [];
     var active = null, slotCounter = 0, done = false;
     var time = 0, last = 0, bob = 0, bobV = 0;
     var live = false, raf = 0, onDone = null, hideBasket = false;
@@ -35,14 +37,21 @@
         i.src = F.svgURL(svg);
       });
     }
+    var build = 0;
     function buildAssets() {
-      var p = F.PAL[R.theme()];
-      return Promise.all([loadImg(F.flowerSVG(p)), loadImg(F.grassSVG(p)), loadImg(F.basketSVG(p))]).then(function (r) {
-        IMG = { f: r[0], g: r[1], b: r[2], p: p };
+      var n = ++build;
+      var p = F.palettes(R.theme(), S.get());
+      return Promise.all([loadImg(F.flowerSVG(p.flowers[0])), loadImg(F.flowerSVG(p.flowers[1])),
+                          loadImg(F.grassSVG(p)), loadImg(F.basketSVG(p.basket))]).then(function (r) {
+        if (n === build) IMG = { f: [r[0], r[1]], g: r[2], b: r[3], p: p };
       });
     }
     buildAssets();
     R.onTheme(buildAssets);
+    S.onChange(function (keys) {
+      if (keys.indexOf('grass') >= 0 || keys.indexOf('scheme') >= 0) buildAssets();
+      if (keys.indexOf('size') >= 0 && W && H) L = computeLayout();
+    });
 
     /* ---------- layout ---------- */
     function computeLayout() {
@@ -62,7 +71,7 @@
         b = { w: bw2, h: bh, x: (W - bw2) / 2, y: H - bh };
       }
       b.sc = b.w / 300;
-      var fH = clamp(Math.sqrt(g.w * g.h / (N * 1.5)), 44, 120);
+      var fH = clamp(Math.sqrt(g.w * g.h / (N * 1.5)), 44, 120) * S.get().size / 100;
       var padX = fH * 0.28, topPad = fH * 0.9, botPad = 14;
       return {
         g: g, b: b, fH: fH, f: fH / 300,
@@ -92,7 +101,7 @@
         tries++;
         if (tries % 40 === 0) relax *= 0.92;
         if (ok) {
-          flowers.push({ u: u, v: v, phase: rand() * 6.28, st: 'ground', ang: 0, angV: 0, lift: 0, liftV: 0,
+          flowers.push({ u: u, v: v, c: flowers.length % 2, phase: rand() * 6.28, st: 'ground', ang: 0, angV: 0, lift: 0, liftV: 0,
                          ox: 0, oxV: 0, ps: 0, pulling: false, fly: null, slot: -1 });
         }
       }
@@ -122,10 +131,10 @@
       for (var i = 0; i < order.length; i++) {
         var f = order[i], gp = groundPos(f), s = L.f;
         var bx = gp.x + f.ox, by = gp.y - f.lift;
-        var cx = bx, cy = by - 190 * s;
+        var cx = bx + Math.sin(f.ang) * 190 * s, cy = by - Math.cos(f.ang) * 190 * s;
         var dx = px - cx, dy = py - cy, rad = 62 * s + 10;
         if (dx * dx + dy * dy <= rad * rad) return f;
-        if (Math.abs(px - bx) <= 6 * s + 10 && py >= cy && py <= by + 6) return f;
+        if (Math.abs(px - (bx + cx) / 2) <= 6 * s + 10 + Math.abs(cx - bx) / 2 && py >= cy && py <= by + 6) return f;
       }
       return null;
     }
@@ -163,7 +172,8 @@
       pluckSound(slotCounter);
       f.st = 'fly';
       f.slot = slotCounter++;
-      f.fly = { t: 0, dur: rm ? 0.3 : 0.9 + rand() * 0.15, x0: gp.x + f.ox, y0: gp.y - f.lift,
+      slotColors[f.slot] = f.c;
+      f.fly = { t: 0, dur: rm ? 0.3 : S.get().flight / 1000 + rand() * 0.15, x0: gp.x + f.ox, y0: gp.y - f.lift,
                 a0: f.ang, s0: L.f, x: gp.x, y: gp.y - f.lift, a: f.ang, s: L.f };
     }
     function release(f) {
@@ -225,6 +235,20 @@
       }
     }
 
+    /* wind and wiggle from the flower controls, as an extra lean (radians) for a flower in the grass.
+       Wind: a steady lean downwind plus gusts that travel across the field from left to right.
+       Wiggle: each flower's own small, quick sway. */
+    function breeze(f) {
+      var o = S.get(), a = 0;
+      if (o.wind) {
+        var amp = o.windSpeed / 60 * 0.35;           // 60 km/h leans about 20 degrees
+        var gust = 0.5 + 0.5 * Math.sin(time * 1.6 - f.u * 4);
+        a += amp * (0.35 + 0.65 * gust) + amp * 0.25 * Math.sin(time * 5.1 + f.phase);
+      }
+      if (o.wiggle) a += o.wiggleAmt * Math.PI / 180 * Math.sin(time * 6.2832 * o.wiggleHz + f.phase);
+      return rm ? a * 0.3 : a;
+    }
+
     function update(dt) {
       var A = active;
       for (var i = 0; i < flowers.length; i++) {
@@ -237,14 +261,15 @@
           var wob = isP ? Math.sin(time * 13 + f.phase) * 0.13 * f.ps * (rm ? 0.3 : 1) : 0;
           var tl = isP ? L.fH * 0.3 * (1 - (1 - f.ps) * (1 - f.ps)) : 0;
           var tx = isP ? clamp((A.x - A.sx) * 0.22, -L.fH * 0.25, L.fH * 0.25) : 0;
-          spring(f, 'ang', 'angV', lean + wob, 80, 6, dt);
+          var sway = isP ? 0 : breeze(f);
+          spring(f, 'ang', 'angV', lean + wob + sway, 80, 6, dt);
           spring(f, 'lift', 'liftV', tl, 140, 11, dt);
           spring(f, 'ox', 'oxV', tx, 100, 10, dt);
         } else if (f.st === 'fly') {
           var fl = f.fly;
           fl.t = Math.min(1, fl.t + dt / fl.dur);
           var t = fl.t;
-          var e = rm ? t : -(Math.cos(Math.PI * t) - 1) / 2;
+          var e = rm ? t : F.FLIGHT[S.get().motion](t);
           var sa = slotAnchor(f.slot);
           var cx = (fl.x0 + sa.x) / 2;
           var cy = Math.min(fl.y0, sa.y) - (rm ? 0 : L.fH * 1.1);
@@ -270,11 +295,11 @@
       ctx.arcTo(x, y, x + w, y, r);
       ctx.closePath();
     }
-    function drawFlower(x, y, s, a) {
+    function drawFlower(x, y, s, a, c) {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(a);
-      ctx.drawImage(IMG.f, -BASE_X * s, -BASE_Y * s, 200 * s, 300 * s);
+      ctx.drawImage(IMG.f[c || 0], -BASE_X * s, -BASE_Y * s, 200 * s, 300 * s);
       ctx.restore();
     }
 
@@ -316,7 +341,7 @@
       for (i = 0; i < ground.length; i++) {
         f = ground[i];
         var p2 = groundPos(f);
-        drawFlower(p2.x + f.ox, p2.y - f.lift, L.f, f.ang);
+        drawFlower(p2.x + f.ox, p2.y - f.lift, L.f, f.ang, f.c);
       }
 
       /* basket layer: flowers inside it, then the basket in front of their stems.
@@ -327,9 +352,9 @@
           f = flowers[i];
           if (f.st === 'basket') {
             var sa = slotAnchor(f.slot);
-            items.push({ x: sa.x, y: sa.y, a: sa.a, s: sa.fb, l: sa.l });
+            items.push({ x: sa.x, y: sa.y, a: sa.a, s: sa.fb, l: sa.l, c: f.c });
           } else if (f.st === 'fly' && f.fly.t > 0.82) {
-            items.push({ x: f.fly.x, y: f.fly.y, a: f.fly.a, s: f.fly.s, l: F.slotParam(f.slot).l });
+            items.push({ x: f.fly.x, y: f.fly.y, a: f.fly.a, s: f.fly.s, l: F.slotParam(f.slot).l, c: f.c });
           }
         }
         items.sort(function (p, q) { return q.l - p.l; });
@@ -338,7 +363,7 @@
         ctx.translate(bcx, bby);
         ctx.scale(1 + bob * 0.1, 1 - bob * 0.18);
         ctx.translate(-bcx, -bby);
-        for (i = 0; i < items.length; i++) drawFlower(items[i].x, items[i].y, items[i].s, items[i].a);
+        for (i = 0; i < items.length; i++) drawFlower(items[i].x, items[i].y, items[i].s, items[i].a, items[i].c);
         ctx.drawImage(IMG.b, b.x, b.y, b.w, b.h);
         ctx.restore();
       }
@@ -346,7 +371,7 @@
       /* flowers in flight */
       for (i = 0; i < flowers.length; i++) {
         f = flowers[i];
-        if (f.st === 'fly' && f.fly.t <= 0.82) drawFlower(f.fly.x, f.fly.y, f.fly.s, f.fly.a);
+        if (f.st === 'fly' && f.fly.t <= 0.82) drawFlower(f.fly.x, f.fly.y, f.fly.s, f.fly.a, f.c);
       }
     }
 
@@ -380,6 +405,7 @@
       reset: function () {
         active = null;
         slotCounter = 0;
+        slotColors = [];
         done = false;
         live = false;
         hideBasket = false;
@@ -397,6 +423,17 @@
         raf = 0;
       },
       setHideBasket: function (on) { hideBasket = on; },
+      /* flower controls "Reset state": a fresh field and an empty basket, still mid-step */
+      restartPick: function () {
+        if (!onDone || done) return;
+        active = null;
+        slotCounter = 0;
+        slotColors = [];
+        bob = 0; bobV = 0;
+        if (L) makeFlowers();
+        live = true;
+      },
+      slotColors: function () { return slotColors.slice(); },
       /* largest flower scale relative to the basket, so the shop's copy of the bouquet matches */
       cap: function () { return L ? L.f * 1.1 / L.b.sc : 0.56; },
       /* the bouquet box (basket units -40..340 x -20..260) in client pixels */

@@ -23,10 +23,11 @@
     var money = R.createMoney(svg, {
       fx: byId('slotsFx'), stacks: byId('stacks'), landed: byId('landed'), items: byId('items'), drag: byId('drag')
     });
-    var cap = 0.56, bq = { x: 80, w: 300 }, tillY = TILL_DOWN;
+    var cap = 0.56, colors = [], bq = { x: 80, w: 300 }, tillY = TILL_DOWN;
 
     function renderBouquet() {
-      bouquetG.innerHTML = '<g transform="translate(40 20)">' + R.flora.bouquet(R.flora.PAL[R.theme()], cap, 8) + '</g>';
+      bouquetG.innerHTML = '<g transform="translate(40 20)">' +
+        R.flora.bouquet(R.flora.palettes(R.theme(), R.settings.get()), cap, 8, colors) + '</g>';
     }
     function setBouquet(q) {
       bq = { x: q.x, w: q.w };
@@ -64,7 +65,7 @@
       bell: bell,
       money: money,
       reset: reset,
-      setBouquet: function (c) { cap = c; renderBouquet(); },
+      setBouquet: function (c, cols) { cap = c; colors = cols || []; renderBouquet(); },
       showBouquet: function (on) { bouquetG.style.visibility = on ? 'visible' : 'hidden'; },
       bouquetClientRect: function () { return toClient(bq.x, COUNTER - bq.w * RATIO, bq.w, bq.w * RATIO); },
       /* slide the bell and bouquet to the arrangement for a step */
