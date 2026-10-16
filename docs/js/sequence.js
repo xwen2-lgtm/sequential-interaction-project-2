@@ -16,8 +16,27 @@
   var panel = R.createPanel({
     toggle: $('panelToggle'),
     panel: $('flowerPanel'),
+    settings: R.settings,
+    openClass: 'panel-open',
+    resetMessage: 'Field reset: new flowers, empty basket.',
     onResetState: function () { if (step === 'pick') flowers.restartPick(); }
   });
+  /* While the bell controls are open the bell can be tried freely; the story continues
+     once the panel is closed (if the bell has been rung by then). */
+  var heldRing = false;
+  var bellPanel = R.createPanel({
+    toggle: $('bellToggle'),
+    panel: $('bellPanel'),
+    settings: R.bellSettings,
+    openClass: 'bellpanel-open',
+    resetMessage: 'Bell stopped and back at rest.',
+    onResetState: function () { shop.bell.calm(); },
+    onClose: function () { if (heldRing && step === 'ring') { heldRing = false; rung(); } }
+  });
+  function bellDone() {
+    if (bellPanel.isOpen()) heldRing = true;
+    else rung();
+  }
 
   /* every restart starts a new generation; timers and tweens from an older one stop quietly */
   var gen = 0, timers = [], step = 'intro';
@@ -69,7 +88,9 @@
     timers.forEach(clearTimeout);
     timers = [];
     stage.querySelectorAll('.ring').forEach(function (r) { r.remove(); });
+    heldRing = false;
     panel.close();
+    bellPanel.close();
     flowers.stop();
     flowers.reset();
     shop.reset();
@@ -147,13 +168,14 @@
       flowers.stop();
       setStep('ring');
       shop.bell.setActive(true);
-      shop.bell.whenRungAndSettled(rung);
+      shop.bell.whenRungAndSettled(bellDone);
     }, function () {});
   }
 
   /* ---------- ring → collect: the bell slides aside and the till rises open ---------- */
   function rung() {
     var ok = guard();
+    bellPanel.close();
     setStep('to-collect');
     shop.bell.setActive(false);
     var reduce = R.reduce();

@@ -53,6 +53,32 @@ The chosen colours carry over to the bouquet on the shop counter. With reduced m
 system settings, the study's reduced-motion rules still apply: linear 0.3 s flights and gentler sway.
 Code: `docs/js/settings.js` (the list of controls), `docs/js/panel.js` (the panel), `docs/js/flowers.js` (how they apply).
 
+## Bell controls (Ring step)
+
+During the Ring step, the same button position (under the mute button) opens a **Bell controls** panel.
+While it is open you can ring the bell as often as you like without moving on; closing it continues to the till
+(if the bell has been rung). Changes apply immediately and are remembered in the browser.
+
+| Control | Range / options | Default |
+|---|---|---|
+| Volume | 0–150 % | 100 % |
+| Sound mood | Original (service bell), Stinging, Happy, Sad, Dull, Bored, Cute | Original |
+| Bell colour | original gray, green, purple, silver, gold, white | original gray |
+| Metallic shine | on: the study's highlight plus a glint that sweeps the dome on each strike; off: flat colour | on |
+| Swing size | 25–200 % of the study's swing | 100 % |
+| Time to return to rest | 0.8–5 s (the study's bell settles in about 2.2 s) | 2.2 s |
+
+The moods change the synthesized ding:
+- **Stinging:** higher and piercing, with a detuned shimmer.
+- **Happy:** a major chord, followed by a second note a major third up.
+- **Sad:** low and minor; it sags in pitch and rings long.
+- **Dull:** a muffled, short clunk.
+- **Bored:** low and quiet, and sighs downward.
+- **Cute:** a toy-like ping that springs up, with a small echo.
+
+Time to rest changes only the damping, so the bell's swing frequency stays the same.
+Reset state stops the bell and its sound and puts it at rest. Restore defaults and Copy as prompt work as in the flower panel.
+
 ## What changed from the studies
 
 The physics constants, thresholds, timings, sound design and hint logic are copied from the studies.
@@ -75,8 +101,8 @@ docs/
   css/style.css     layout, light/dark colours, money and slot animations
   js/util.js        theme, tweening, shared flower/basket art
   js/audio.js       shared AudioContext and mute
-  js/settings.js    flower controls: list, defaults, saved values, prompt text
-  js/panel.js       the collapsible flower controls panel
+  js/settings.js    flower and bell controls: lists, defaults, saved values, prompt text
+  js/panel.js       the collapsible control panels
   js/flowers.js     step 1 (Pick Flowers study)
   js/bell.js        step 2 (Ring The Bell study)
   js/money.js       step 3 (Collect Money study)

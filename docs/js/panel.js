@@ -1,10 +1,12 @@
-/* The collapsible "Flower controls" panel for the Pick step. It is built from the list in js/settings.js;
-   every change applies to the field straight away. */
+/* A collapsible control panel (flower controls in the Pick step, bell controls in the Ring step).
+   It is built from a settings list in js/settings.js; every change applies straight away. */
 (function () {
   'use strict';
-  var R = window.RPC, S = R.settings;
+  var R = window.RPC;
 
-  R.createPanel = function (opts) { // opts: { toggle, panel, onResetState }
+  /* opts: { toggle, panel, settings, onResetState, resetMessage, openClass, onClose } */
+  R.createPanel = function (opts) {
+    var S = opts.settings;
     var toggle = opts.toggle, panel = opts.panel;
     var body = panel.querySelector('.panel-body'), status = panel.querySelector('.panel-status');
     var manual = panel.querySelector('.panel-manual');
@@ -94,7 +96,7 @@
           var o = d.options[v[k]];
           if (o.hex) el.__sw.appendChild(swatch(o.hex));
           else if (o.colors) o.colors.forEach(function (c2) { el.__sw.appendChild(swatch(c2[1])); });
-          else if (d.key !== 'motion') el.__sw.appendChild(swatch(null));
+          else if (d.swatch) el.__sw.appendChild(swatch(null));
         }
         var off = d.when && !v[d.when];
         el.disabled = !!off;
@@ -108,7 +110,8 @@
     var stage = panel.parentNode;
     function setOpen(on) {
       panel.hidden = !on;
-      stage.classList.toggle('panel-open', on);
+      stage.classList.toggle(opts.openClass, on);
+      if (!on && opts.onClose) opts.onClose();
       toggle.setAttribute('aria-expanded', on ? 'true' : 'false');
     }
     toggle.addEventListener('click', function () { setOpen(panel.hidden); });
@@ -124,7 +127,7 @@
     }
     panel.querySelector('[data-act="reset"]').addEventListener('click', function () {
       opts.onResetState();
-      say('Field reset: new flowers, empty basket.');
+      say(opts.resetMessage);
     });
     panel.querySelector('[data-act="defaults"]').addEventListener('click', function () {
       S.restoreDefaults();
@@ -154,6 +157,9 @@
       } else fallback();
     });
 
-    return { close: function () { setOpen(false); } };
+    return {
+      close: function () { if (!panel.hidden) setOpen(false); },
+      isOpen: function () { return !panel.hidden; }
+    };
   };
 })();

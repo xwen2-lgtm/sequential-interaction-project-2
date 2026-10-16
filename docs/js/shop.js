@@ -19,7 +19,7 @@
   R.createShop = function (svg) {
     function byId(id) { return document.getElementById(id); }
     var till = byId('till'), bouquetG = byId('bouquet');
-    var bell = R.createBell({ place: byId('bellPlace'), hit: byId('bellHit'), swing: byId('swing'), btn: byId('btn') });
+    var bell = R.createBell({ place: byId('bellPlace'), hit: byId('bellHit'), swing: byId('swing'), btn: byId('btn'), glint: byId('glint') });
     var money = R.createMoney(svg, {
       fx: byId('slotsFx'), stacks: byId('stacks'), landed: byId('landed'), items: byId('items'), drag: byId('drag')
     });

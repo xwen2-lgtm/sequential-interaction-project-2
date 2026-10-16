@@ -263,6 +263,11 @@ body {
 .bell.off { pointer-events: none; }
 .bell.off .hit { pointer-events: none; cursor: default; }
 .bell:focus-visible .b-dome { stroke: var(--ui); stroke-width: 3; }
+/* bell controls: a white bell gets a thin edge so it reads against the light background;
+   with metallic shine off the highlight is hidden */
+.b-dome, .b-base { stroke: var(--bell-edge, none); stroke-width: 1.5; }
+.b-glint { fill: #fff; transform: skewX(-18deg); transform-box: fill-box; transform-origin: center; pointer-events: none; }
+.bell.flat .b-hi, .bell.flat .b-glint { display: none; }
 
 /* ---------- counter and till colours ---------- */
 .ln { stroke: var(--line); }
@@ -337,9 +342,9 @@ body {
 }
 
 /* ---------- flower controls (Pick step only) ---------- */
-#panelToggle { display: none; top: calc(60px + env(safe-area-inset-top, 0px)); }
-#stage[data-step="pick"] #panelToggle { display: grid; }
-#panelToggle[aria-expanded="true"] { opacity: 1; background: var(--hover); }
+#panelToggle, #bellToggle { display: none; top: calc(60px + env(safe-area-inset-top, 0px)); }
+#stage[data-step="pick"] #panelToggle, #stage[data-step="ring"] #bellToggle { display: grid; }
+#panelToggle[aria-expanded="true"], #bellToggle[aria-expanded="true"] { opacity: 1; background: var(--hover); }
 .panel {
   position: absolute;
   z-index: 9;
@@ -359,7 +364,7 @@ body {
   -webkit-user-select: text;
   user-select: text;
 }
-.panel[hidden], #stage:not([data-step="pick"]) .panel { display: none; }
+.panel[hidden], #stage:not([data-step="pick"]) #flowerPanel, #stage:not([data-step="ring"]) #bellPanel { display: none; }
 .panel-head {
   display: flex;
   align-items: center;
@@ -463,5 +468,7 @@ body {
 
 /* on wide screens the field makes room for the open panel instead of being covered by it */
 @media (min-width: 720px) {
-  #stage.panel-open #fieldLayer { padding-right: calc(300px + 28px + env(safe-area-inset-right, 0px)); }
+  #stage.panel-open #fieldLayer,
+  #stage.bellpanel-open #shopLayer { padding-right: calc(300px + 28px + env(safe-area-inset-right, 0px)); }
 }
+.panel-note { margin: 0; padding: 8px 14px 0; font-size: 12px; color: var(--p-muted); }

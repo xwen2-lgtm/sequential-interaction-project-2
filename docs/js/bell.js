@@ -1,13 +1,15 @@
 /* Step 2, Ring: the Ring The Bell study, now standing on the shop counter.
    The springs, metallic shiver and synthesized ding are unchanged. Changes: the bell can be placed and
    scaled on the counter, it only responds while its step is active, and it reports when it has been rung
-   and its wobble has settled. */
+   and its wobble has settled. The bell controls (js/settings.js) set volume, sound mood, colour,
+   shine, swing size and time to rest; their defaults reproduce the study. */
 (function () {
   'use strict';
   var R = window.RPC;
 
-  R.createBell = function (el) { // el: { place, hit, swing, btn }
+  R.createBell = function (el) { // el: { place, hit, swing, btn, glint }
     var reduce = R.reduce();
+    var S = R.bellSettings;
     var DEG = 180 / Math.PI;
 
     /* ---------- Motion: three damped springs (slide, tilt, button) plus a metallic shiver ---------- */
@@ -19,6 +21,7 @@
     var KT = 130, CT = 4.6;
     var KP = 420, CP = 16;
     var tr = 9;             // seconds since the strike
+    var SETTLE0 = 2.15;     // how long the study's bell takes to settle, in seconds
     var raf = 0, last = 0;
 
     var active = false, rang = false, onSettle = null;
@@ -36,16 +39,24 @@
       el.swing.setAttribute('transform',
         'translate(' + (x + shake).toFixed(2) + ' 0) rotate(' + (th * DEG).toFixed(2) + ' 150 150)');
       el.btn.setAttribute('transform', 'translate(0 ' + p.toFixed(2) + ')');
+      /* metallic shine: a glint sweeps across the dome in the 0.6 s after each strike */
+      if (el.glint) {
+        var g = S.get().shine && !reduce && tr < 0.6 ? tr / 0.6 : -1;
+        el.glint.setAttribute('opacity', g < 0 ? '0' : (0.85 * Math.sin(g * Math.PI)).toFixed(3));
+        el.glint.setAttribute('x', (40 + Math.max(g, 0) * 200).toFixed(1));
+      }
     }
 
     function frame(now) {
       var dt = Math.min(0.033, (now - last) / 1000);
       last = now;
       var n = 4, h = dt / n;
+      /* time to return to rest: the study settles in about 2.2 s; damping scales inversely with the time chosen */
+      var k = SETTLE0 / S.get().settle, cx = CX * k, ct = CT * k;
       for (var i = 0; i < n; i++) {
-        vx += (-KX * x - CX * vx) * h;
+        vx += (-KX * x - cx * vx) * h;
         x += vx * h;
-        w += (-KT * th - CT * w) * h;
+        w += (-KT * th - ct * w) * h;
         th += w * h;
         vp += (-KP * p - CP * vp) * h;
         p += vp * h;
@@ -101,18 +112,46 @@
       return ctx;
     }
 
-    function strike(level) {
+    /* sound moods: base pitch, partials [ratio, level, decay s], click noise, filters,
+       and what follows the strike (the study's hammer rebound, or a second note) */
+    var MOODS = {
+      original: { f0: 2350, parts: PARTIALS, noise: 1.1, hp: 3000, rebound: 0.4 },
+      stinging: { f0: 3300, parts: [[1, 1, 2.6], [1.004, 0.7, 2.6], [2.01, 0.8, 1.8], [2.76, 0.9, 2.0], [4.07, 0.6, 1.4],
+                                    [5.4, 0.7, 1.2], [8.9, 0.5, 0.9], [11.3, 0.4, 0.7]], noise: 1.8, hp: 4500, rebound: 0.6 },
+      happy:    { f0: 1568, parts: [[1, 1, 1.2], [1.26, 0.7, 1.0], [1.5, 0.6, 1.0], [2, 0.4, 0.7], [3, 0.15, 0.4]],
+                  noise: 0.6, hp: 3000, echo: { delay: 110, ratio: 1.26, level: 0.75 } },
+      sad:      { f0: 740, parts: [[1, 1, 2.8], [1.19, 0.6, 2.4], [1.5, 0.35, 1.8], [2, 0.2, 1.2]],
+                  noise: 0.25, hp: 2000, lp: 2400, drop: 0.97, rebound: 0.3 },
+      dull:     { f0: 820, parts: [[1, 1, 0.35], [2.3, 0.4, 0.18], [3.1, 0.2, 0.1]], noise: 0.5, hp: 800, lp: 1400 },
+      bored:    { f0: 560, parts: [[1, 1, 0.7], [2, 0.25, 0.4]], noise: 0.15, hp: 1500, lp: 2000, drop: 0.92, gain: 0.7 },
+      cute:     { f0: 2900, parts: [[1, 1, 0.45], [2, 0.35, 0.25], [3, 0.12, 0.15]], noise: 0.3, hp: 5000, glide: 0.8,
+                  echo: { delay: 80, ratio: 1.5, level: 0.6 } }
+    };
+
+    function strike(level, ratio) {
       var c = audio();
       if (!c) return;
+      var m = MOODS[S.get().mood];
       var now = c.currentTime;
-      var f0 = 2350 * (1 + (Math.random() - 0.5) * 0.004);
+      var f0 = m.f0 * (ratio || 1) * (1 + (Math.random() - 0.5) * 0.004);
       var out = c.createGain();
-      out.gain.value = level * 0.34;
-      out.connect(bus);
-      PARTIALS.forEach(function (q) {
+      out.gain.value = level * 0.34 * (m.gain || 1) * S.get().volume / 100;
+      if (m.lp) {
+        var lp = c.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.value = m.lp;
+        out.connect(lp);
+        lp.connect(bus);
+      } else out.connect(bus);
+      m.parts.forEach(function (q) {
         var o = c.createOscillator();
         o.type = 'sine';
-        o.frequency.value = f0 * q[0];
+        var f = f0 * q[0];
+        if (m.glide) {
+          o.frequency.setValueAtTime(f * m.glide, now);
+          o.frequency.exponentialRampToValueAtTime(f, now + 0.04);
+        } else o.frequency.setValueAtTime(f, now);
+        if (m.drop) o.frequency.exponentialRampToValueAtTime(f * m.drop, now + q[2]);
         var e = c.createGain();
         e.gain.setValueAtTime(0, now);
         e.gain.linearRampToValueAtTime(q[1], now + 0.001);
@@ -126,9 +165,9 @@
       n.buffer = noise;
       var hp = c.createBiquadFilter();
       hp.type = 'highpass';
-      hp.frequency.value = 3000;
+      hp.frequency.value = m.hp;
       var ng = c.createGain();
-      ng.gain.value = 1.1;
+      ng.gain.value = m.noise;
       n.connect(hp);
       hp.connect(ng);
       ng.connect(out);
@@ -139,10 +178,12 @@
     var timer = 0;
 
     function ring() {
+      var m = MOODS[S.get().mood];
       strike(1);
       clearTimeout(timer);
-      timer = setTimeout(function () { strike(0.4); }, 62);   // hammer rebound
-      var big = reduce ? 0.25 : 1;
+      if (m.rebound) timer = setTimeout(function () { strike(m.rebound); }, 62);   // hammer rebound
+      else if (m.echo) timer = setTimeout(function () { strike(m.echo.level, m.echo.ratio); }, m.echo.delay);
+      var big = (reduce ? 0.25 : 1) * S.get().swing / 100;
       vx = Math.min(vx, 0) - 95 * big;       // first move is to the left
       w += -1.3 * big;                       // small tilt so the dome never touches the base
       p = PRESS;
@@ -190,12 +231,39 @@
       if (!on && document.activeElement === el.hit) el.hit.blur();
     }
 
+    /* bell controls "Reset state": stop the bell and its sound and put it at rest,
+       counting it as settled if it had been rung */
+    function calm() {
+      var wasRung = rang, cb = onSettle;
+      reset();
+      if (!cb) return;
+      if (wasRung) cb();
+      else onSettle = cb;   // not rung yet: still waiting for the first ring
+    }
+
+    /* colour and shine */
+    var LOOK = ['base', 'dome', 'hi', 'plunger'];
+    function applyLook() {
+      var v = S.get(), c = S.COLORS[v.color];
+      LOOK.forEach(function (k) {
+        if (c[k]) el.hit.style.setProperty('--' + k, c[k]);
+        else el.hit.style.removeProperty('--' + k);
+      });
+      if (c.edge) el.hit.style.setProperty('--bell-edge', c.edge);
+      else el.hit.style.removeProperty('--bell-edge');
+      el.hit.classList.toggle('flat', !v.shine);
+      render();
+    }
+    S.onChange(applyLook);
+    applyLook();
+
     setActive(false);
     render();
 
     return {
       setActive: setActive,
       reset: reset,
+      calm: calm,
       setPlace: setPlace,
       place: function () { return place; },
       /* calls cb once the bell has been rung and has come to rest */
