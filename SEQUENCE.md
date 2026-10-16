@@ -79,6 +79,19 @@ The moods change the synthesized ding:
 Time to rest changes only the damping, so the bell's swing frequency stays the same.
 Reset state stops the bell and its sound and puts it at rest. Restore defaults and Copy as prompt work as in the flower panel.
 
+## Table controls (Ring and Collect steps)
+
+The shop counter's finish can be changed from a **Table** section in the Ring step's panel (now titled
+"Bell & table controls"), and from a **Table controls** panel in the Collect step.
+
+| Control | Options | Default |
+|---|---|---|
+| Table wood | original gray, cherry blossom, rosewood, maple, willow, oak, birch | original gray |
+| Tree-ring grain | on / off: wavy grain lines and ring knots drawn over the counter top, front and drawer panels (wood finishes only) | on |
+
+Each wood has its own counter-top, cabinet and edge colours; in dark mode they are drawn 30% darker.
+In the Collect panel, Reset state deals a fresh pile of money onto the counter.
+
 ## What changed from the studies
 
 The physics constants, thresholds, timings, sound design and hint logic are copied from the studies.
@@ -101,7 +114,7 @@ docs/
   css/style.css     layout, light/dark colours, money and slot animations
   js/util.js        theme, tweening, shared flower/basket art
   js/audio.js       shared AudioContext and mute
-  js/settings.js    flower and bell controls: lists, defaults, saved values, prompt text
+  js/settings.js    flower, bell and table controls: lists, defaults, saved values, prompt text
   js/panel.js       the collapsible control panels
   js/flowers.js     step 1 (Pick Flowers study)
   js/bell.js        step 2 (Ring The Bell study)

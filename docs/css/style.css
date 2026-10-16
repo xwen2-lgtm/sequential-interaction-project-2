@@ -373,7 +373,7 @@ body {
   border-color: var(--p-ink);
   color: var(--p-bg);
 }
-#stage[data-step="pick"] #panelToggle, #stage[data-step="ring"] #bellToggle {
+#stage[data-step="pick"] #panelToggle, #stage[data-step="ring"] #bellToggle, #stage[data-step="collect"] #tableToggle {
   display: inline-flex;
   animation: attn 1.6s ease-out 0.4s 4;
 }
@@ -387,7 +387,7 @@ body {
   .corner.ctl-toggle { right: calc(max(12px, env(safe-area-inset-right, 0px)) + 124px + 8px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  #stage[data-step="pick"] #panelToggle, #stage[data-step="ring"] #bellToggle { animation: none; }
+  #stage[data-step="pick"] #panelToggle, #stage[data-step="ring"] #bellToggle, #stage[data-step="collect"] #tableToggle { animation: none; }
 }
 .panel {
   position: absolute;
@@ -408,7 +408,8 @@ body {
   -webkit-user-select: text;
   user-select: text;
 }
-.panel[hidden], #stage:not([data-step="pick"]) #flowerPanel, #stage:not([data-step="ring"]) #bellPanel { display: none; }
+.panel[hidden], #stage:not([data-step="pick"]) #flowerPanel, #stage:not([data-step="ring"]) #bellPanel,
+#stage:not([data-step="collect"]) #tablePanel { display: none; }
 .panel-head {
   display: flex;
   align-items: center;
@@ -513,6 +514,12 @@ body {
 /* on wide screens the field makes room for the open panel instead of being covered by it */
 @media (min-width: 720px) {
   #stage.panel-open #fieldLayer,
-  #stage.bellpanel-open #shopLayer { padding-right: calc(300px + 28px + env(safe-area-inset-right, 0px)); }
+  #stage.bellpanel-open #shopLayer,
+  #stage.tablepanel-open #shopLayer { padding-right: calc(300px + 28px + env(safe-area-inset-right, 0px)); }
 }
 .panel-note { margin: 0; padding: 8px 14px 0; font-size: 12px; color: var(--p-muted); }
+
+/* table controls: tree-ring grain drawn over the counter; only shown for wood finishes with grain on */
+.grain { display: none; fill: url(#grain); pointer-events: none; }
+#scene.grain-on .grain { display: inline; }
+.gr { fill: none; stroke: var(--wood-grain, transparent); stroke-width: 1.4; stroke-linecap: round; opacity: 0.55; }

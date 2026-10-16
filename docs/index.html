@@ -51,6 +51,20 @@
           <filter id="halo" x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="7"/>
           </filter>
+          <!-- tree-ring wood grain (table controls): long wavy streaks with a ring knot -->
+          <pattern id="grain" patternUnits="userSpaceOnUse" width="320" height="64">
+            <g class="gr">
+              <path d="M0 8 Q80 3 160 8 T320 8"/>
+              <path d="M0 22 Q80 27 160 21 T320 22"/>
+              <path d="M0 38 Q60 34 120 39 T240 37 T320 38" />
+              <path d="M0 54 Q80 58 160 53 T320 54"/>
+              <ellipse cx="236" cy="30" rx="34" ry="11"/>
+              <ellipse cx="236" cy="30" rx="22" ry="7"/>
+              <ellipse cx="236" cy="30" rx="11" ry="3.5"/>
+              <ellipse cx="70" cy="46" rx="16" ry="5"/>
+              <ellipse cx="70" cy="46" rx="7" ry="2"/>
+            </g>
+          </pattern>
           <clipPath id="domeClip"><path d="M70 150 A80 70 0 0 1 230 150 Z"/></clipPath>
           <clipPath id="drawerClip"><rect x="70" y="30" width="760" height="395" rx="14"/></clipPath>
           <!-- the drawer is only ever seen above the counter top, so it can rise from behind it -->
@@ -62,12 +76,19 @@
           <ellipse class="c-floor" cx="450" cy="834" rx="410" ry="12"/>
           <g filter="url(#shadow)">
             <polygon class="ln" points="40,440 860,440 880,640 20,640" fill="url(#surf)" stroke-width="3" stroke-linejoin="round"/>
+            <polygon class="grain" points="40,440 860,440 880,640 20,640"/>
             <polygon class="c-topsheen" points="48,446 852,446 858,472 42,472"/>
             <g transform="translate(0 550)">
               <rect class="c-rail ln" x="20" y="90" width="860" height="22" rx="3" stroke-width="3"/>
               <line class="c-railline" x1="30" y1="96" x2="870" y2="96" stroke-width="2"/>
               <rect class="ln" x="40" y="112" width="820" height="150" fill="url(#front)" stroke-width="3"/>
+              <rect class="grain" x="40" y="112" width="820" height="150"/>
               <g class="ln" stroke-width="3" fill="url(#panel)">
+                <rect x="60" y="128" width="250" height="62" rx="4"/>
+                <rect x="325" y="128" width="250" height="62" rx="4"/>
+                <rect x="590" y="128" width="250" height="62" rx="4"/>
+              </g>
+              <g class="grain">
                 <rect x="60" y="128" width="250" height="62" rx="4"/>
                 <rect x="325" y="128" width="250" height="62" rx="4"/>
                 <rect x="590" y="128" width="250" height="62" rx="4"/>
@@ -83,6 +104,10 @@
                 <rect x="685" y="152" width="60" height="12" rx="6"/>
               </g>
               <g class="ln" stroke-width="3" fill="url(#panel)">
+                <rect x="60" y="204" width="388" height="46" rx="4"/>
+                <rect x="452" y="204" width="388" height="46" rx="4"/>
+              </g>
+              <g class="grain">
                 <rect x="60" y="204" width="388" height="46" rx="4"/>
                 <rect x="452" y="204" width="388" height="46" rx="4"/>
               </g>
@@ -224,7 +249,7 @@
   </button>
   <aside id="bellPanel" class="panel" aria-label="Bell controls" hidden>
     <div class="panel-head">
-      <h2>Bell controls</h2>
+      <h2>Bell &amp; table controls</h2>
       <button class="panel-close" type="button" aria-label="Collapse bell controls" title="Collapse">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 15l6-6 6 6"/></svg>
       </button>
@@ -234,6 +259,34 @@
     <div class="panel-foot">
       <div class="panel-actions">
         <button type="button" data-act="reset" title="Stop the bell and its sound and put it back at rest; settings stay">Reset state</button>
+        <button type="button" data-act="defaults" title="Put every control back to the study's original values">Restore defaults</button>
+      </div>
+      <button type="button" data-act="copy" class="primary">Copy as prompt</button>
+      <textarea class="panel-manual" rows="7" readonly hidden aria-label="Prompt text"></textarea>
+      <p class="panel-status" role="status" aria-live="polite"></p>
+    </div>
+  </aside>
+
+  <!-- Table controls: only offered during the Collect step (the Ring step's bell panel has them too) -->
+  <button id="tableToggle" class="corner pill ctl-toggle" type="button" aria-label="Table controls" title="Table controls"
+          aria-expanded="false" aria-controls="tablePanel">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/>
+      <circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>
+    </svg>
+    <span class="lbl long">Table controls</span><span class="lbl short">Controls</span>
+  </button>
+  <aside id="tablePanel" class="panel" aria-label="Table controls" hidden>
+    <div class="panel-head">
+      <h2>Table controls</h2>
+      <button class="panel-close" type="button" aria-label="Collapse table controls" title="Collapse">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 15l6-6 6 6"/></svg>
+      </button>
+    </div>
+        <div class="panel-body"></div>
+    <div class="panel-foot">
+      <div class="panel-actions">
+        <button type="button" data-act="reset" title="Deal a fresh pile of money onto the counter; settings stay">Reset state</button>
         <button type="button" data-act="defaults" title="Put every control back to the study's original values">Restore defaults</button>
       </div>
       <button type="button" data-act="copy" class="primary">Copy as prompt</button>

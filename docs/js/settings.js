@@ -158,4 +158,55 @@
     ].join('\n');
   });
   R.bellSettings.COLORS = BELL_COLORS;
+
+  /* ---------- table controls (the shop counter, Ring and Collect steps) ---------- */
+  /* top: counter-top gradient; front/panel: cabinet; rail: edge strips; grain: tree-ring lines */
+  var WOODS = {
+    original: { label: 'Original (gray)' },
+    cherry:   { label: 'Cherry blossom', hex: '#F2C9CF', top: ['#F2C9CF', '#DFA3AD'], front: ['#C98B95', '#B0727D'],
+                panel: ['#D9A0AA', '#C88E98'], rail: '#8E5560', grain: '#A86470' },
+    rosewood: { label: 'Rosewood', hex: '#8E3B2E', top: ['#8E3B2E', '#6E2A20'], front: ['#5E241C', '#4A1B15'],
+                panel: ['#7A3226', '#682A20'], rail: '#3A120C', grain: '#3E130D' },
+    maple:    { label: 'Maple', hex: '#E8C99A', top: ['#E8C99A', '#D6AF78'], front: ['#C2955E', '#A97E4B'],
+                panel: ['#D4AC74', '#C49A62'], rail: '#7E5A30', grain: '#9C7340' },
+    willow:   { label: 'Willow', hex: '#E3DDBF', top: ['#E3DDBF', '#CFC79E'], front: ['#B5AD86', '#9E966F'],
+                panel: ['#C7BF98', '#B6AE87'], rail: '#6E6748', grain: '#8C845E' },
+    oak:      { label: 'Oak', hex: '#C9965A', top: ['#C9965A', '#B07D42'], front: ['#946232', '#7C5128'],
+                panel: ['#B07F48', '#9E6E3B'], rail: '#5A3818', grain: '#6B4420' },
+    birch:    { label: 'Birch', hex: '#F3E9D2', top: ['#F3E9D2', '#E4D6B6'], front: ['#CDBD98', '#B9A882'],
+                panel: ['#E0D2B0', '#D2C3A0'], rail: '#8A7A56', grain: '#A8976F' }
+  };
+  R.tableSettings = makeSettings('rpc-table-settings', [
+    { key: 'wood',  group: 'Table', label: 'Table wood', type: 'choice', options: WOODS, def: 'original', swatch: true },
+    { key: 'grain', group: 'Table', label: 'Tree-ring grain', type: 'toggle', def: true,
+      needs: function (v) { return v.wood !== 'original'; } }
+  ], function (v) {
+    var w = WOODS[v.wood];
+    return [
+      'Update the shop counter (table) in the Flower Shop prototype with these settings:',
+      '- Table finish: ' + (w.hex ? w.label.toLowerCase() + ' wood (' + w.hex + ')' : 'original gray (no wood)'),
+      '- Tree-ring wood grain: ' + (w.hex ? (v.grain ? 'on' : 'off') : 'not shown on the gray finish')
+    ].join('\n');
+  });
+  R.tableSettings.WOODS = WOODS;
+
+  /* several settings lists shown in one panel (e.g. bell + table) */
+  R.combineSettings = function (stores) {
+    function owner(key) {
+      return stores.filter(function (st) { return st.DEFS.some(function (d) { return d.key === key; }); })[0];
+    }
+    return {
+      DEFS: stores.reduce(function (a, st) { return a.concat(st.DEFS); }, []),
+      get: function () {
+        var o = {};
+        stores.forEach(function (st) { var v = st.get(); for (var k in v) o[k] = v[k]; });
+        return o;
+      },
+      set: function (key, v) { var st = owner(key); if (st) st.set(key, v); },
+      restoreDefaults: function () { stores.forEach(function (st) { st.restoreDefaults(); }); },
+      onChange: function (cb) { stores.forEach(function (st) { st.onChange(cb); }); },
+      format: stores[0].format,
+      prompt: function () { return stores.map(function (st) { return st.prompt(); }).join('\n\n'); }
+    };
+  };
 })();

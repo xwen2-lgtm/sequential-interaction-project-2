@@ -1,4 +1,4 @@
-/* A collapsible control panel (flower controls in the Pick step, bell controls in the Ring step).
+/* A collapsible control panel (flower controls in Pick, bell and table controls in Ring, table controls in Collect).
    It is built from a settings list in js/settings.js; every change applies straight away. */
 (function () {
   'use strict';
@@ -98,7 +98,7 @@
           else if (o.colors) o.colors.forEach(function (c2) { el.__sw.appendChild(swatch(c2[1])); });
           else if (d.swatch) el.__sw.appendChild(swatch(null));
         }
-        var off = d.when && !v[d.when];
+        var off = (d.when && !v[d.when]) || (d.needs && !d.needs(v));
         el.disabled = !!off;
         c.row.classList.toggle('off', !!off);
       });

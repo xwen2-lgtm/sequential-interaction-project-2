@@ -40,6 +40,26 @@
     }
     R.onTheme(function () { if (bouquetG.innerHTML) renderBouquet(); });
 
+    /* table controls: wood colours for the counter top, cabinet and edges (a little darker in dark mode),
+       and the tree-ring grain overlay */
+    var T = R.tableSettings;
+    var WOOD_VARS = { '--c-surf-a': ['top', 0], '--c-surf-b': ['top', 1], '--c-front-a': ['front', 0], '--c-front-b': ['front', 1],
+                      '--c-panel-a': ['panel', 0], '--c-panel-b': ['panel', 1], '--c-rail': ['rail'], '--c-base': ['rail'],
+                      '--wood-grain': ['grain'] };
+    function applyTable() {
+      var v = T.get(), w = T.WOODS[v.wood], dark = R.theme() === 'dark';
+      Object.keys(WOOD_VARS).forEach(function (name) {
+        var src = WOOD_VARS[name];
+        if (!w.hex) { svg.style.removeProperty(name); return; }
+        var c = src.length > 1 ? w[src[0]][src[1]] : w[src[0]];
+        svg.style.setProperty(name, dark ? R.flora.mix(c, '#000000', 0.3) : c);
+      });
+      svg.classList.toggle('grain-on', !!w.hex && v.grain);
+    }
+    T.onChange(applyTable);
+    R.onTheme(applyTable);
+    applyTable();
+
     function toClient(x, y, w, h) {
       var m = svg.getScreenCTM(), pt = svg.createSVGPoint();
       pt.x = x; pt.y = y;

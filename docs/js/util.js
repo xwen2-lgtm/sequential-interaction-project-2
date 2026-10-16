@@ -146,6 +146,6 @@
 
   R.flora = {
     PAL: PAL, flowerSVG: flowerSVG, grassSVG: grassSVG, basketSVG: basketSVG,
-    svgURL: svgURL, slotParam: slotParam, bouquet: bouquet, palettes: palettes, FLIGHT: FLIGHT
+    svgURL: svgURL, slotParam: slotParam, bouquet: bouquet, palettes: palettes, FLIGHT: FLIGHT, mix: mix
   };
 })();

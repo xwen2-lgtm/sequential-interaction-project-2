@@ -27,11 +27,20 @@
   var bellPanel = R.createPanel({
     toggle: $('bellToggle'),
     panel: $('bellPanel'),
-    settings: R.bellSettings,
+    settings: R.combineSettings([R.bellSettings, R.tableSettings]),
     openClass: 'bellpanel-open',
     resetMessage: 'Bell stopped and back at rest.',
     onResetState: function () { shop.bell.calm(); },
     onClose: function () { if (heldRing && step === 'ring') { heldRing = false; rung(); } }
+  });
+  /* Collect step: table controls. Reset state deals a fresh pile of money. */
+  var tablePanel = R.createPanel({
+    toggle: $('tableToggle'),
+    panel: $('tablePanel'),
+    settings: R.tableSettings,
+    openClass: 'tablepanel-open',
+    resetMessage: 'A fresh pile of money is on the counter.',
+    onResetState: function () { if (step === 'collect') shop.money.start(paid); }
   });
   function bellDone() {
     if (bellPanel.isOpen()) heldRing = true;
@@ -91,6 +100,7 @@
     heldRing = false;
     panel.close();
     bellPanel.close();
+    tablePanel.close();
     flowers.stop();
     flowers.reset();
     shop.reset();
@@ -194,6 +204,7 @@
   /* ---------- collect → closing tableau ---------- */
   function paid() {
     var ok = guard();
+    tablePanel.close();
     var reduce = R.reduce();
     setStep('ending');
     shop.closeTill(reduce ? 1 : 800, ok).then(function () {
