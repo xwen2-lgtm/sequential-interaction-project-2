@@ -55,6 +55,20 @@
         svg.style.setProperty(name, dark ? R.flora.mix(c, '#000000', 0.3) : c);
       });
       svg.classList.toggle('grain-on', !!w.hex && v.grain);
+      /* the till drawer takes its colours from the shop background; in dark mode the
+         compartments go dark and their labels light, like the original dark till */
+      var till = T.BACKDROPS[v.backdrop].till;
+      ['body', 'interior', 'comp', 'label', 'lip', 'pull', 'pullhi'].forEach(function (k) {
+        var name = '--t-' + k;
+        if (!till) { svg.style.removeProperty(name); return; }
+        var c = till[k];
+        if (dark) {
+          if (k === 'comp') c = R.flora.mix(till.comp, till.interior, 0.7);
+          else if (k === 'label') c = till.comp;
+          else c = R.flora.mix(c, '#000000', 0.3);
+        }
+        svg.style.setProperty(name, c);
+      });
       /* shop background picture behind the counter (set inline so the path is relative to the page) */
       var bg = document.getElementById('shopBg');
       bg.style.backgroundImage = v.backdrop === 'none' ? '' : 'url("assets/backgrounds/' + v.backdrop + '.svg")';

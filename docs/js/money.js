@@ -143,17 +143,18 @@
 
     /* ---------- art ---------- */
     function billArt(d) {
+      /* each bill has its own soft colour: f fill, t ink (text, borders) */
       var P = {
-        '1':   { f: '#f0f0f0', t: '#2b2b2b' },
-        '5':   { f: '#d2d2d2', t: '#222' },
-        '20':  { f: '#a6a6a6', t: '#111' },
-        '100': { f: '#6a6a6a', t: '#fff' }
+        '1':   { f: '#DCEFD3', t: '#2F5A2A' },   // sage green
+        '5':   { f: '#E9DDF5', t: '#4B2F72' },   // lilac
+        '20':  { f: '#FBE6C2', t: '#6E4A12' },   // apricot
+        '100': { f: '#D6E6F7', t: '#1F3F66' }    // pale blue
       }[d];
       var inner = '';
-      if (d === '1') inner = '<rect x="-64" y="-24" width="128" height="48" rx="3" fill="none" stroke="#2b2b2b" stroke-width="1"/>';
-      if (d === '5') inner = '<rect x="-65" y="-25" width="130" height="50" rx="3" fill="none" stroke="#222" stroke-width="1.5"/><rect x="-60" y="-20" width="120" height="40" rx="2" fill="none" stroke="#222" stroke-width="1"/>';
-      if (d === '20') inner = '<rect x="-64" y="-24" width="128" height="48" rx="3" fill="none" stroke="#111" stroke-width="2"/><rect x="-58" y="-18" width="116" height="36" rx="2" fill="none" stroke="#111" stroke-width="2" stroke-dasharray="1 4" stroke-linecap="round"/>';
-      if (d === '100') inner = '<rect x="-63" y="-23" width="126" height="46" rx="3" fill="none" stroke="#eee" stroke-width="1.5"/><g fill="#111"><circle cx="-56" cy="-17" r="3.5"/><circle cx="56" cy="-17" r="3.5"/><circle cx="-56" cy="17" r="3.5"/><circle cx="56" cy="17" r="3.5"/></g>';
+      if (d === '1') inner = '<rect x="-64" y="-24" width="128" height="48" rx="3" fill="none" stroke="' + P.t + '" stroke-width="1"/>';
+      if (d === '5') inner = '<rect x="-65" y="-25" width="130" height="50" rx="3" fill="none" stroke="' + P.t + '" stroke-width="1.5"/><rect x="-60" y="-20" width="120" height="40" rx="2" fill="none" stroke="' + P.t + '" stroke-width="1"/>';
+      if (d === '20') inner = '<rect x="-64" y="-24" width="128" height="48" rx="3" fill="none" stroke="' + P.t + '" stroke-width="2"/><rect x="-58" y="-18" width="116" height="36" rx="2" fill="none" stroke="' + P.t + '" stroke-width="2" stroke-dasharray="1 4" stroke-linecap="round"/>';
+      if (d === '100') inner = '<rect x="-63" y="-23" width="126" height="46" rx="3" fill="none" stroke="' + P.t + '" stroke-width="1.5"/><g fill="' + P.t + '"><circle cx="-56" cy="-17" r="3.5"/><circle cx="56" cy="-17" r="3.5"/><circle cx="-56" cy="17" r="3.5"/><circle cx="56" cy="17" r="3.5"/></g>';
       var fs = d === '100' ? 17 : 22;
       return '<rect x="-70" y="-30" width="140" height="60" rx="5" fill="' + P.f + '" stroke="#1a1a1a" stroke-width="1.8"/>' +
         inner +

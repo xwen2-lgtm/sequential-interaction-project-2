@@ -177,12 +177,18 @@
                 panel: ['#E0D2B0', '#D2C3A0'], rail: '#8A7A56', grain: '#A8976F' }
   };
   /* back-wall pictures behind the counter (docs/assets/backgrounds, made by tools/make_backgrounds.py) */
+  /* till: the cash drawer's colours, matched to each background
+     (body, interior, compartments, labels, front lip, pull, pull highlight) */
   var BACKDROPS = {
     none:   { label: 'Plain (original)' },
-    purple: { label: 'Purple boutique', hex: '#B9A7E0' },
-    pink:   { label: 'Pink cottage',    hex: '#F8D3DD' },
-    mint:   { label: 'Mint market',     hex: '#CDEFE1' },
-    cream:  { label: 'Neutral cream',   hex: '#F4ECDD' }
+    purple: { label: 'Purple boutique', hex: '#B9A7E0',
+              till: { body: '#9C87D3', interior: '#4B3C7A', comp: '#EDE4FF', label: '#3B2F66', lip: '#B9A7E0', pull: '#3B2F66', pullhi: '#8E79C7' } },
+    pink:   { label: 'Pink cottage',    hex: '#F8D3DD',
+              till: { body: '#E8A3B8', interior: '#8C4A60', comp: '#FFF0F4', label: '#7A2E48', lip: '#F2BFCD', pull: '#7A2E48', pullhi: '#D88AA2' } },
+    mint:   { label: 'Mint market',     hex: '#CDEFE1',
+              till: { body: '#8CCBB1', interior: '#2F4F46', comp: '#EAF7F1', label: '#24453B', lip: '#B4E3CF', pull: '#24453B', pullhi: '#6FB497' } },
+    cream:  { label: 'Neutral cream',   hex: '#F4ECDD',
+              till: { body: '#D8C8A8', interior: '#6B5A43', comp: '#FBF6EC', label: '#4A3D2C', lip: '#E9DDC6', pull: '#4A3D2C', pullhi: '#B08D62' } }
   };
   R.tableSettings = makeSettings('rpc-table-settings', [
     { key: 'backdrop', group: 'Shop', label: 'Shop background', type: 'choice', options: BACKDROPS, def: 'none', swatch: true },
@@ -193,7 +199,8 @@
     var w = WOODS[v.wood];
     return [
       'Update the shop counter (table) and shop background in the Flower Shop prototype with these settings:',
-      '- Shop background: ' + (v.backdrop === 'none' ? 'plain (original)' : BACKDROPS[v.backdrop].label.toLowerCase() + ' (docs/assets/backgrounds/' + v.backdrop + '.svg)'),
+      '- Shop background: ' + (v.backdrop === 'none' ? 'plain (original), gray till' : BACKDROPS[v.backdrop].label.toLowerCase() +
+        ' (docs/assets/backgrounds/' + v.backdrop + '.svg), with the till drawer in matching colours'),
       '- Table finish: ' + (w.hex ? w.label.toLowerCase() + ' wood (' + w.hex + ')' : 'original gray (no wood)'),
       '- Tree-ring wood grain: ' + (w.hex ? (v.grain ? 'on' : 'off') : 'not shown on the gray finish')
     ].join('\n');
