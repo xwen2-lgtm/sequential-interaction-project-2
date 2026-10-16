@@ -1,6 +1,6 @@
 /* Step 3, Collect: the Collect Money study. Drag each bill and coin into its slot in the till.
    Dragging, slot glow, hints, the "nope" return, stacking, sounds and the completion lights are unchanged.
-   Changes: one round only (the study dealt a new pile after finishing; here finishing ends the step),
+   Changes: coloured bills and coins, one round only (the study dealt a new pile after finishing; here finishing ends the step),
    shared audio and mute, and a drawer-closing sound used by the ending. */
 (function () {
   'use strict';
@@ -163,16 +163,17 @@
         '<text x="-44" y="7">$' + d + '</text><text x="44" y="7">$' + d + '</text></g>' +
         '<path d="M-68 -30 H68 Q70 -30 70 -28 V-4 Q0 8 -70 -4 V-28 Q-70 -30 -68 -30 Z" fill="url(#glossB)"/>';
     }
+    /* coins in their metals: a copper penny and a bright silver dime */
     function coinArt(k) {
       if (k === 'penny') {
-        return '<circle r="26.7" fill="#4a4a4a" stroke="#000" stroke-width="2"/>' +
-          '<circle r="19" fill="none" stroke="#9a9a9a" stroke-width="2"/>' +
-          '<circle r="3" fill="#bdbdbd"/>' +
+        return '<circle r="26.7" fill="#B8733A" stroke="#5A3416" stroke-width="2"/>' +
+          '<circle r="19" fill="none" stroke="#E0A570" stroke-width="2"/>' +
+          '<circle r="3" fill="#F3C99A"/>' +
           '<ellipse cx="-8" cy="-11" rx="13" ry="7" transform="rotate(-30 -8 -11)" fill="#fff" fill-opacity=".3"/>';
       }
-      return '<circle r="25.1" fill="#f4f4f4" stroke="#000" stroke-width="2"/>' +
-        '<circle r="21" fill="none" stroke="#444" stroke-width="5" stroke-dasharray="1.5 2.5"/>' +
-        '<circle r="13" fill="none" stroke="#777" stroke-width="1.5"/>' +
+      return '<circle r="25.1" fill="#E4E8EC" stroke="#4A5058" stroke-width="2"/>' +
+        '<circle r="21" fill="none" stroke="#8A9099" stroke-width="5" stroke-dasharray="1.5 2.5"/>' +
+        '<circle r="13" fill="none" stroke="#A9B0B8" stroke-width="1.5"/>' +
         '<ellipse cx="-8" cy="-10" rx="12" ry="6.5" transform="rotate(-30 -8 -10)" fill="#fff" fill-opacity=".7"/>';
     }
     function art(slot) { return slot.kind === 'bill' ? billArt(slot.d) : coinArt(slot.d); }

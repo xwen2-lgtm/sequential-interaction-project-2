@@ -30,7 +30,7 @@ The published site is in `docs/`.
 ## Flower controls (Pick step)
 
 During the Pick step, a sliders button under the mute button opens a collapsible **Flower controls** panel.
-Changes apply immediately and are remembered in the browser. The defaults reproduce the study exactly.
+Changes apply immediately and are remembered in the browser. The motion defaults reproduce the study; the colour defaults are the finished look (spring flowers on olive grass), and "Original (gray)" restores the study's look.
 
 | Control | Range / options | Default |
 |---|---|---|
@@ -40,8 +40,8 @@ Changes apply immediately and are remembered in the browser. The defaults reprod
 | Wiggle | on / off | off |
 | Wiggle amount | 1–15 ° | 5 ° |
 | Wiggle speed | 0.5–4 Hz | 1.5 Hz |
-| Grass | original gray, lime, yellow green, peacock, olive, apple green | original gray |
-| Flowers | original gray; spring (light pink + butter yellow), summer (turquoise + bright magenta), fall (brown + light red), winter (light mint + pale lilac). Flowers alternate between the two colours, each with the other colour as its centre. | original gray |
+| Grass | original gray, lime, yellow green, peacock, olive, apple green | olive green |
+| Flowers | original gray; spring (light pink + butter yellow), summer (turquoise + bright magenta), fall (brown + light red), winter (light mint + pale lilac). Flowers alternate between the two colours, each with the other colour as its centre. | spring |
 | Flight easing | Linear, Ease In, Ease Out, Ease In-Out (the study's curve), Spring/Bounce | Ease In-Out |
 | Flight time | 300–2000 ms (plus the study's 0–150 ms random variation) | 900 ms |
 
@@ -85,8 +85,8 @@ The shop background and counter finish can be changed from the **Shop** (first) 
 
 | Control | Options | Default |
 |---|---|---|
-| Shop background | plain, purple boutique, pink cottage, mint market, neutral cream | plain |
-| Table wood | original gray, cherry blossom, rosewood, maple, willow, oak, birch | original gray |
+| Shop background | plain, purple boutique, pink cottage, mint market, neutral cream | neutral cream |
+| Table wood | original gray, cherry blossom, rosewood, maple, willow, oak, birch | oak |
 | Tree-ring grain | on / off: wavy grain lines and ring knots drawn over the counter top, front and drawer panels (wood finishes only) | on |
 
 Each wood has its own counter-top, cabinet and edge colours; in dark mode they are drawn 30% darker.
@@ -109,7 +109,8 @@ Only the following changed so that they work as one experience:
 - **Till opens and closes.** The study only had an open drawer. The drawer now rises from behind the counter top and sinks back at the end.
 - **The bouquet.** The finished basket is redrawn as SVG from the same flower and basket art. That keeps it identical to the canvas version as it is carried over.
 - **Per-step reset buttons removed**, as decided above.
-- **Coloured bills.** Each bill has a soft colour of its own: $1 sage green, $5 lilac, $20 apricot, $100 pale blue. Coins are unchanged.
+- **Coloured money.** Each bill has a soft colour of its own ($1 sage green, $5 lilac, $20 apricot, $100 pale blue); the penny is copper and the dime silver. Always on.
+- **Finished look by default.** Players see spring flowers on olive grass, the coloured bouquet in a wicker basket, the cream shop background, an oak counter and a till that matches the background, without choosing anything. The till always follows the background and has no control of its own.
 - **Wicker basket.** The study's flat gray basket is now a traditional pale-brown woven basket, with a basket-weave body, a braided rim and a twisted handle. It is used in the field and in the bouquet on the counter, and is a little darker in dark mode.
 - **Dead code dropped**: the unused puff particles in the flower study.
 

@@ -1,6 +1,8 @@
 /* Adjustable properties for the control panels: flower controls (Pick step) and bell controls (Ring step).
    Each panel, its defaults, "Restore defaults" and its copied prompt are all built from one list here.
-   Values are remembered in this browser between visits. Defaults reproduce the original studies. */
+   Values are remembered in this browser between visits. The defaults are the finished look
+   (coloured flowers on olive grass, cream shop, oak counter); the "Original" options restore the studies' gray look.
+   The storage keys end in -v2 so earlier saved choices are cleared once and everyone starts from these defaults. */
 (function () {
   'use strict';
   var R = window.RPC = window.RPC || {};
@@ -79,15 +81,15 @@
     spring: 'Spring/Bounce'
   };
 
-  R.settings = makeSettings('rpc-flower-settings', [
+  R.settings = makeSettings('rpc-flower-settings-v2', [
     { key: 'size',      group: 'Flowers', label: 'Flower size',   type: 'range', min: 60, max: 160, step: 5, unit: '%', def: 100 },
     { key: 'wind',      group: 'Wind',    label: 'Wind',          type: 'toggle', def: false },
     { key: 'windSpeed', group: 'Wind',    label: 'Wind strength', type: 'range', min: 5, max: 60, step: 1, unit: 'km/h', def: 20, when: 'wind' },
     { key: 'wiggle',    group: 'Wiggle',  label: 'Wiggle',        type: 'toggle', def: false },
     { key: 'wiggleAmt', group: 'Wiggle',  label: 'Wiggle amount', type: 'range', min: 1, max: 15, step: 1, unit: '°', def: 5, when: 'wiggle' },
     { key: 'wiggleHz',  group: 'Wiggle',  label: 'Wiggle speed',  type: 'range', min: 0.5, max: 4, step: 0.1, unit: 'Hz', def: 1.5, when: 'wiggle' },
-    { key: 'grass',     group: 'Colour',  label: 'Grass',         type: 'choice', options: GRASS, def: 'original', swatch: true },
-    { key: 'scheme',    group: 'Colour',  label: 'Flowers',       type: 'choice', options: SCHEMES, def: 'original', swatch: true },
+    { key: 'grass',     group: 'Colour',  label: 'Grass',         type: 'choice', options: GRASS, def: 'olive', swatch: true },
+    { key: 'scheme',    group: 'Colour',  label: 'Flowers',       type: 'choice', options: SCHEMES, def: 'spring', swatch: true },
     { key: 'motion',    group: 'Motion',  label: 'Flight easing', type: 'choice', options: MOTIONS, def: 'inout' },
     { key: 'flight',    group: 'Motion',  label: 'Flight time',   type: 'range', min: 300, max: 2000, step: 50, unit: 'ms', def: 900 }
   ], function (v) {
@@ -190,9 +192,9 @@
     cream:  { label: 'Neutral cream',   hex: '#F4ECDD',
               till: { body: '#D8C8A8', interior: '#6B5A43', comp: '#FBF6EC', label: '#4A3D2C', lip: '#E9DDC6', pull: '#4A3D2C', pullhi: '#B08D62' } }
   };
-  R.tableSettings = makeSettings('rpc-table-settings', [
-    { key: 'backdrop', group: 'Shop', label: 'Shop background', type: 'choice', options: BACKDROPS, def: 'none', swatch: true },
-    { key: 'wood',  group: 'Table', label: 'Table wood', type: 'choice', options: WOODS, def: 'original', swatch: true },
+  R.tableSettings = makeSettings('rpc-table-settings-v2', [
+    { key: 'backdrop', group: 'Shop', label: 'Shop background', type: 'choice', options: BACKDROPS, def: 'cream', swatch: true },
+    { key: 'wood',  group: 'Table', label: 'Table wood', type: 'choice', options: WOODS, def: 'oak', swatch: true },
     { key: 'grain', group: 'Table', label: 'Tree-ring grain', type: 'toggle', def: true,
       needs: function (v) { return v.wood !== 'original'; } }
   ], function (v) {
