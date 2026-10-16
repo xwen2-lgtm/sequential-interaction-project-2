@@ -176,21 +176,23 @@
   <button id="restart" class="corner left" type="button" aria-label="Restart from the beginning" title="Restart">
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v5h5"/></svg>
   </button>
-  <button id="mute" class="corner right" type="button" aria-label="Sound" aria-pressed="true" title="Sound">
+  <button id="mute" class="corner right pill" type="button" aria-label="Sound" aria-pressed="true" title="Sound">
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path class="spk" d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z"/>
       <g class="on"><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18.2 6.4a8 8 0 0 1 0 11.2"/></g>
       <path class="off" d="M16 9.5l5 5M21 9.5l-5 5"/>
     </svg>
+    <span class="lbl on">Sound on</span><span class="lbl off">Sound off</span>
   </button>
 
   <!-- Flower controls: only offered during the Pick step -->
-  <button id="panelToggle" class="corner right second" type="button" aria-label="Flower controls" title="Flower controls"
+  <button id="panelToggle" class="corner pill ctl-toggle" type="button" aria-label="Flower controls" title="Flower controls"
           aria-expanded="false" aria-controls="flowerPanel">
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/>
       <circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>
     </svg>
+    <span class="lbl long">Flower controls</span><span class="lbl short">Controls</span>
   </button>
   <aside id="flowerPanel" class="panel" aria-label="Flower controls" hidden>
     <div class="panel-head">
@@ -212,12 +214,13 @@
   </aside>
 
   <!-- Bell controls: only offered during the Ring step -->
-  <button id="bellToggle" class="corner right second" type="button" aria-label="Bell controls" title="Bell controls"
+  <button id="bellToggle" class="corner pill ctl-toggle" type="button" aria-label="Bell controls" title="Bell controls"
           aria-expanded="false" aria-controls="bellPanel">
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/>
       <circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>
     </svg>
+    <span class="lbl long">Bell controls</span><span class="lbl short">Controls</span>
   </button>
   <aside id="bellPanel" class="panel" aria-label="Bell controls" hidden>
     <div class="panel-head">

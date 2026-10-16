@@ -1,5 +1,5 @@
 /* Layout: one full-screen stage. The field (step 1) and the shop counter (steps 2-3) are stacked layers;
-   the "tap to begin" screen sits on top until the first tap. Restart and mute stay in the top corners. */
+   the "tap to begin" screen sits on top until the first tap. Restart (left) and the sound and controls buttons (right) stay at the top. */
 :root {
   --bg: #ebebeb;
   --ui: #5f5f5f;
@@ -144,7 +144,7 @@ body {
 .layer {
   position: absolute;
   inset: 0;
-  padding: calc(64px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px))
+  padding: calc(80px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px))
            max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
   opacity: 0;
   visibility: hidden;
@@ -226,20 +226,43 @@ body {
 }
 .corner {
   top: calc(12px + env(safe-area-inset-top, 0px));
-  width: 40px;
-  height: 40px;
-  opacity: 0.5;
-  transition: opacity 0.2s;
+  width: 52px;
+  height: 52px;
+  border-width: 2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+  transition: background-color 0.2s, box-shadow 0.2s;
 }
 .corner.left { left: max(12px, env(safe-area-inset-left, 0px)); }
 .corner.right { right: max(12px, env(safe-area-inset-right, 0px)); }
-.corner:hover, .corner:focus-visible { opacity: 1; }
+.corner:hover { background: var(--hover); }
 .corner:focus-visible, .replay:focus-visible { outline: 2px solid var(--ui); outline-offset: 3px; }
-.corner svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.corner svg { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 #mute .spk { fill: currentColor; }
 #mute .off { display: none; }
 #mute[aria-pressed="false"] .on { display: none; }
 #mute[aria-pressed="false"] .off { display: inline; }
+
+/* labelled buttons: sound (far right) and the step's controls beside it */
+.pill {
+  width: auto;
+  min-width: 52px;
+  gap: 8px;
+  padding: 0 18px 0 14px;
+  border-radius: 26px;
+  font: 600 15px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  white-space: nowrap;
+}
+.corner.pill { display: inline-flex; align-items: center; justify-content: center; }
+#mute { width: 136px; }
+#mute .lbl.on { display: inline; }
+#mute[aria-pressed="false"] .lbl.on { display: none; }
+.lbl.short { display: none; }
+@media (max-width: 480px) {
+  .lbl.long { display: none; }
+  .lbl.short { display: inline; }
+  #mute { width: 124px; padding: 0 12px; font-size: 14px; }
+  .ctl-toggle { font-size: 14px; }
+}
 
 .replay {
   left: 50%;
@@ -342,16 +365,37 @@ body {
 }
 
 /* ---------- flower controls (Pick step only) ---------- */
-#panelToggle, #bellToggle { display: none; top: calc(60px + env(safe-area-inset-top, 0px)); }
-#stage[data-step="pick"] #panelToggle, #stage[data-step="ring"] #bellToggle { display: grid; }
-#panelToggle[aria-expanded="true"], #bellToggle[aria-expanded="true"] { opacity: 1; background: var(--hover); }
+/* the controls button is filled and pulses a few times when its step begins, so it is easy to find */
+.corner.ctl-toggle {
+  display: none;
+  right: calc(max(12px, env(safe-area-inset-right, 0px)) + 136px + 10px);
+  background: var(--p-ink);
+  border-color: var(--p-ink);
+  color: var(--p-bg);
+}
+#stage[data-step="pick"] #panelToggle, #stage[data-step="ring"] #bellToggle {
+  display: inline-flex;
+  animation: attn 1.6s ease-out 0.4s 4;
+}
+.corner.ctl-toggle:hover { background: var(--p-ink); box-shadow: 0 0 0 4px var(--ring); }
+.corner.ctl-toggle[aria-expanded="true"] { animation: none; box-shadow: 0 0 0 4px var(--ring); }
+@keyframes attn {
+  0% { box-shadow: 0 0 0 0 var(--ring), 0 2px 8px rgba(0, 0, 0, 0.14); }
+  100% { box-shadow: 0 0 0 18px transparent, 0 2px 8px rgba(0, 0, 0, 0.14); }
+}
+@media (max-width: 480px) {
+  .corner.ctl-toggle { right: calc(max(12px, env(safe-area-inset-right, 0px)) + 124px + 8px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #stage[data-step="pick"] #panelToggle, #stage[data-step="ring"] #bellToggle { animation: none; }
+}
 .panel {
   position: absolute;
   z-index: 9;
-  top: calc(108px + env(safe-area-inset-top, 0px));
+  top: calc(76px + env(safe-area-inset-top, 0px));
   right: max(12px, env(safe-area-inset-right, 0px));
   width: min(300px, calc(100vw - 24px));
-  max-height: calc(100% - 124px - env(safe-area-inset-top, 0px));
+  max-height: calc(100% - 92px - env(safe-area-inset-top, 0px));
   display: flex;
   flex-direction: column;
   border: 1px solid var(--p-line);
