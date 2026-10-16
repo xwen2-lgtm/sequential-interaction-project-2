@@ -27,7 +27,7 @@
   var bellPanel = R.createPanel({
     toggle: $('bellToggle'),
     panel: $('bellPanel'),
-    settings: R.combineSettings([R.bellSettings, R.tableSettings]),
+    settings: R.combineSettings([R.bellSettings, R.tableSettings], ['Shop', 'Sound', 'Look', 'Motion', 'Table']),
     openClass: 'bellpanel-open',
     resetMessage: 'Bell stopped and back at rest.',
     onResetState: function () { shop.bell.calm(); },

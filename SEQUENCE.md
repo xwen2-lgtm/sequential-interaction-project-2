@@ -81,8 +81,7 @@ Reset state stops the bell and its sound and puts it at rest. Restore defaults a
 
 ## Table controls (Ring and Collect steps)
 
-The shop counter's finish can be changed from a **Table** section in the Ring step's panel (now titled
-"Bell & table controls"), and from a **Table controls** panel in the Collect step.
+The shop background and counter finish can be changed from the **Shop** (first) and **Table** sections of the Ring step's panel ("Bell, table & shop controls"), and from a **Table controls** panel in the Collect step.
 
 | Control | Options | Default |
 |---|---|---|
@@ -108,6 +107,7 @@ Only the following changed so that they work as one experience:
 - **Till opens and closes.** The study only had an open drawer. The drawer now rises from behind the counter top and sinks back at the end.
 - **The bouquet.** The finished basket is redrawn as SVG from the same flower and basket art. That keeps it identical to the canvas version as it is carried over.
 - **Per-step reset buttons removed**, as decided above.
+- **Wicker basket.** The study's flat gray basket is now a traditional pale-brown woven basket, with a basket-weave body, a braided rim and a twisted handle. It is used in the field and in the bouquet on the counter, and is a little darker in dark mode.
 - **Dead code dropped**: the unused puff particles in the flower study.
 
 ## Files

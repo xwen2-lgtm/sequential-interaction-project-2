@@ -45,9 +45,9 @@
   /* ---------- flower, grass and basket art (from the Pick Flowers study) ---------- */
   var PAL = {
     light: { grass: '#dcdcdc', tuft: '#bcbcbc', petal: '#8f8f8f', core: '#f7f7f7', stem: '#6f6f6f', leaf: '#9b9b9b',
-             bBody: '#cacaca', bLine: '#7b7b7b', bRim: '#aaaaaa', shadow: 'rgba(70,70,70,0.20)' },
+             bBody: '#cacaca', bLine: '#7b7b7b', bRim: '#aaaaaa', shadow: 'rgba(70,70,70,0.20)', dark: false },
     dark:  { grass: '#2c2c2c', tuft: '#464646', petal: '#bdbdbd', core: '#3a3a3a', stem: '#8a8a8a', leaf: '#717171',
-             bBody: '#4a4a4a', bLine: '#9a9a9a', bRim: '#5e5e5e', shadow: 'rgba(0,0,0,0.35)' }
+             bBody: '#4a4a4a', bLine: '#9a9a9a', bRim: '#5e5e5e', shadow: 'rgba(0,0,0,0.35)', dark: true }
   };
 
   function flowerSVG(p) {
@@ -66,13 +66,44 @@
       '<path d="M180 215 l-4 -14 M180 215 l4 -14"/><path d="M250 175 l-3 -10 M250 175 l3 -10"/>' +
       '<path d="M320 205 l-4 -14 M320 205 l4 -14"/><path d="M370 160 l-3 -10 M370 160 l3 -10"/></g></svg>';
   }
+  /* A traditional woven wicker basket in pale browns: a twisted, braided handle, a basket-weave body
+     (short rounded strands over and under upright stakes) and a braided rim. Same outline as the study's basket. */
+  var WICKER = {
+    light: { body: '#D9BC8E', strand: '#E8D2A9', strand2: '#C9A574', line: '#9A7547', stake: '#B08A58', shade: '#8C6A3F' },
+    dark:  { body: '#A88C62', strand: '#BCA278', strand2: '#9C7E52', line: '#6E5333', stake: '#86683F', shade: '#5E4629' }
+  };
   function basketSVG(p) {
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 260" width="300" height="260">' +
-      '<path d="M70 160 C70 40 230 40 230 160" stroke="' + p.bLine + '" stroke-width="8" fill="none" stroke-linecap="round"/>' +
-      '<path d="M60 160 H240 L215 240 H85 Z" fill="' + p.bBody + '" stroke="' + p.bLine + '" stroke-width="3" stroke-linejoin="round"/>' +
-      '<g stroke="' + p.bLine + '" stroke-width="2" opacity="0.7"><path d="M68 185 H232"/><path d="M76 212 H224"/>' +
-      '<path d="M110 160 L100 240"/><path d="M150 160 V240"/><path d="M190 160 L200 240"/></g>' +
-      '<rect x="55" y="152" width="190" height="14" rx="6" fill="' + p.bRim + '" stroke="' + p.bLine + '" stroke-width="3"/></svg>';
+    var w = WICKER[p.dark ? 'dark' : 'light'], i, x, y, row, out = [];
+    out.push('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 260" width="300" height="260">');
+    out.push('<defs><clipPath id="b"><path d="M60 160 H240 L215 240 H85 Z"/></clipPath></defs>');
+    /* braided handle: a thick core with two strands twisting around it */
+    var hp = 'M70 160 C70 40 230 40 230 160';
+    out.push('<path d="' + hp + '" stroke="' + w.line + '" stroke-width="13" fill="none" stroke-linecap="round"/>');
+    out.push('<path d="' + hp + '" stroke="' + w.strand2 + '" stroke-width="10" fill="none" stroke-linecap="round"/>');
+    out.push('<path d="' + hp + '" stroke="' + w.strand + '" stroke-width="5" fill="none" stroke-dasharray="9 7"/>');
+    out.push('<path d="' + hp + '" stroke="' + w.shade + '" stroke-width="2" fill="none" stroke-dasharray="3 13" stroke-dashoffset="-10"/>');
+    /* body and its weave */
+    out.push('<path d="M60 160 H240 L215 240 H85 Z" fill="' + w.body + '"/>');
+    out.push('<g clip-path="url(#b)">');
+    for (x = 66; x <= 236; x += 17) out.push('<path d="M' + x + ' 160 L' + (150 + (x - 150) * 0.78) + ' 240" stroke="' + w.stake + '" stroke-width="3"/>');
+    for (row = 0, y = 166; y < 240; y += 11, row++) {
+      for (x = 50 + (row % 2) * 9; x < 250; x += 18) {
+        out.push('<rect x="' + x + '" y="' + y + '" width="15" height="8" rx="4" fill="' + ((row + Math.round(x / 18)) % 2 ? w.strand : w.strand2) +
+          '" stroke="' + w.line + '" stroke-width="0.8"/>');
+      }
+    }
+    out.push('<path d="M60 160 H240 L232 186 H68 Z" fill="#fff" opacity="0.12"/>');
+    out.push('</g>');
+    out.push('<path d="M60 160 H240 L215 240 H85 Z" fill="none" stroke="' + w.line + '" stroke-width="3" stroke-linejoin="round"/>');
+    out.push('<rect x="86" y="236" width="128" height="7" rx="3" fill="' + w.shade + '"/>');
+    /* braided rim: slanted plaits laid along a rounded band */
+    out.push('<rect x="55" y="151" width="190" height="16" rx="8" fill="' + w.strand2 + '" stroke="' + w.line + '" stroke-width="2.5"/>');
+    for (i = 0, x = 61; x <= 240; x += 8, i++) {
+      out.push('<ellipse cx="' + x + '" cy="159" rx="6" ry="3.6" transform="rotate(' + (i % 2 ? 35 : -35) + ' ' + x + ' 159)" fill="' +
+        (i % 2 ? w.strand : w.stake) + '" stroke="' + w.shade + '" stroke-width="0.7"/>');
+    }
+    out.push('</svg>');
+    return out.join('');
   }
   function svgURL(svg) { return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); }
 

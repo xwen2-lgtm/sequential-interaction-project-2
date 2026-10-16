@@ -202,12 +202,20 @@
   R.tableSettings.BACKDROPS = BACKDROPS;
 
   /* several settings lists shown in one panel (e.g. bell + table) */
-  R.combineSettings = function (stores) {
+  /* order: optional list of group names, to choose which sections come first in the panel */
+  R.combineSettings = function (stores, order) {
     function owner(key) {
       return stores.filter(function (st) { return st.DEFS.some(function (d) { return d.key === key; }); })[0];
     }
     return {
-      DEFS: stores.reduce(function (a, st) { return a.concat(st.DEFS); }, []),
+      DEFS: (function () {
+        var all = stores.reduce(function (a, st) { return a.concat(st.DEFS); }, []);
+        if (!order) return all;
+        function rank(d) { var i = order.indexOf(d.group); return i < 0 ? order.length : i; }
+        return all.map(function (d, i) { return [d, i]; })
+          .sort(function (x, y) { return rank(x[0]) - rank(y[0]) || x[1] - y[1]; })
+          .map(function (x) { return x[0]; });
+      })(),
       get: function () {
         var o = {};
         stores.forEach(function (st) { var v = st.get(); for (var k in v) o[k] = v[k]; });
