@@ -176,19 +176,30 @@
     birch:    { label: 'Birch', hex: '#F3E9D2', top: ['#F3E9D2', '#E4D6B6'], front: ['#CDBD98', '#B9A882'],
                 panel: ['#E0D2B0', '#D2C3A0'], rail: '#8A7A56', grain: '#A8976F' }
   };
+  /* back-wall pictures behind the counter (docs/assets/backgrounds, made by tools/make_backgrounds.py) */
+  var BACKDROPS = {
+    none:   { label: 'Plain (original)' },
+    purple: { label: 'Purple boutique', hex: '#B9A7E0' },
+    pink:   { label: 'Pink cottage',    hex: '#F8D3DD' },
+    mint:   { label: 'Mint market',     hex: '#CDEFE1' },
+    cream:  { label: 'Neutral cream',   hex: '#F4ECDD' }
+  };
   R.tableSettings = makeSettings('rpc-table-settings', [
+    { key: 'backdrop', group: 'Shop', label: 'Shop background', type: 'choice', options: BACKDROPS, def: 'none', swatch: true },
     { key: 'wood',  group: 'Table', label: 'Table wood', type: 'choice', options: WOODS, def: 'original', swatch: true },
     { key: 'grain', group: 'Table', label: 'Tree-ring grain', type: 'toggle', def: true,
       needs: function (v) { return v.wood !== 'original'; } }
   ], function (v) {
     var w = WOODS[v.wood];
     return [
-      'Update the shop counter (table) in the Flower Shop prototype with these settings:',
+      'Update the shop counter (table) and shop background in the Flower Shop prototype with these settings:',
+      '- Shop background: ' + (v.backdrop === 'none' ? 'plain (original)' : BACKDROPS[v.backdrop].label.toLowerCase() + ' (docs/assets/backgrounds/' + v.backdrop + '.svg)'),
       '- Table finish: ' + (w.hex ? w.label.toLowerCase() + ' wood (' + w.hex + ')' : 'original gray (no wood)'),
       '- Tree-ring wood grain: ' + (w.hex ? (v.grain ? 'on' : 'off') : 'not shown on the gray finish')
     ].join('\n');
   });
   R.tableSettings.WOODS = WOODS;
+  R.tableSettings.BACKDROPS = BACKDROPS;
 
   /* several settings lists shown in one panel (e.g. bell + table) */
   R.combineSettings = function (stores) {

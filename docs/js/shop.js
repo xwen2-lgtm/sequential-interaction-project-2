@@ -55,6 +55,9 @@
         svg.style.setProperty(name, dark ? R.flora.mix(c, '#000000', 0.3) : c);
       });
       svg.classList.toggle('grain-on', !!w.hex && v.grain);
+      /* shop background picture behind the counter (set inline so the path is relative to the page) */
+      var bg = document.getElementById('shopBg');
+      bg.style.backgroundImage = v.backdrop === 'none' ? '' : 'url("assets/backgrounds/' + v.backdrop + '.svg")';
     }
     T.onChange(applyTable);
     R.onTheme(applyTable);
